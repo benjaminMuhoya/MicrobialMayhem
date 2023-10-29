@@ -4,7 +4,7 @@ import random
 import sys
 import os
 
-def defense_system_score(user_input):
+def defense(user_input):
   
   microbe = user_input
 

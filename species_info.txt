@@ -1,3 +1,9 @@
-Ecoli = "Eschericia coli is a gram-negative rod-shaped bacterium commonly found in the lower intestinal tract of warm-blooded organisms. Most are harmless and exist mutually with their human hosts, but some can cause severe disease. These disease-causing strains contain accessory genes that allow them to evade their host's immune system while attacking it with toxic proteins. These strains can also compete against other bacteria - indeed, your winning strain may have used these to out-compete its opponent!"
+E.coli = "Eschericia coli is a gram-negative rod-shaped bacterium commonly found in the lower intestinal tract of warm-blooded organisms. Most are harmless and exist mutually with their human hosts, but some can cause severe disease. These disease-causing strains contain accessory genes that allow them to evade their host's immune system while attacking it with toxic proteins. These strains can also compete against other bacteria - indeed, your winning strain may have used these to out-compete its opponent!"
 
-Mtub = "Mycobacterium tuberculosis is a gram-negative rod-shaped pathogenic bacterium responsible for the disease tuberculosis. This species is unique because of the waxy coating on its surface that makes it impervious to some important host defenses. It requires a lot of oxygen for growth--which explains
+M.tuberculosis = "Mycobacterium tuberculosis is a gram-negative rod-shaped pathogenic bacterium responsible for the disease tuberculosis. This species is unique because of the waxy coating on its surface that makes it impervious to some important host defenses. It requires a lot of oxygen for growth--which explains why tuberculosis is often found in the lungs.
+
+V.paramaris = ""
+
+M.alcalica = "Methylophaga alcalica is a gram-negative rod-shaped bacterium originally isolated from marine environments. This species is an extremophile because it grows well in a high salt, high temperature environment.
+
+S.aureus = "Staphylococcus aureus is a gram-positive sherically shaped bacterium frequently found in the upper respiratory tract and on the skin. It is commonly heard of because it is an important human pathogen that causes a wide range of diseases. To add to this, the treatment of S. aureus infections is challenging due to the emergence of multiple antibiotic-resistant isolates.  

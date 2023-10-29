@@ -35,8 +35,10 @@ def main():
     #microbes are set
     print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
-  #now, call class attributes - working on this now  
-  microbe_A_def = Microbe(microbe_a_species,microbe_a_colony,)
+  #now, call class attributes - working on this now
+  #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
+  microbe_A_def = Microbe(microbe_a_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
+  microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
   
 
 
