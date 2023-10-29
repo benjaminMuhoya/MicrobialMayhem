@@ -53,6 +53,8 @@ def main():
 
   microbeA = microbe_class.Microbe(species = a_species, growth_rate = int(spp_dict[a_species][growth_rate]), kin_select = int(spp_dict[a_species][kin_select]))
   microbeB = microve_class.Microbe(species = b_species, growth_rate = int(spp_dict[microbe_b_species][growth_rate]), kin_select = int(spp_dict[b_species][kin_select]))
+  
+#Who wins? A or B?
 
   A_total = sum(microbeA.score(), (colony_size * microbeA.growth_rate())) #add in env_score
   B_total = sum(microbeB.score(), (colony_size * microbeB.growth_rate())) #add in env_score

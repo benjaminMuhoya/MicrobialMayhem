@@ -136,13 +136,16 @@ class Microbe():
         return defense_score
     
     def strength(self):
-        if self.kin_select > 0:
-            self.fitness = (self.growth_rate - self.kin_select) * 10
+        if self.kin_select > 5:
+            fitness = float((self.growth_rate - 0.5) * 4)
         else:
-            self.fitness = self.growth_rate
-        attributes = [self.bgc_content, self.growth_rate, self.fitness]
-        self.strength = sum(attributes)
-        return self.strength
- 
-#iGC_content(self)
-#print(microbe1.BGC_score())
+            fitness = float(self.growth_rate - 0.5)
+        print(fitness)
+        scores_list = [self.BGC_content(), self.defense(), fitness]
+        score = sum(scores_list)
+        return score
+
+#microbe1 = Microbe('K.pneumoniae', 3, 2)
+#print(microbe1.BGC_content())
+#print(microbe1.defense())
+#print(microbe1.strength())
