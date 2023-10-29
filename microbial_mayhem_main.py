@@ -29,7 +29,7 @@ def main():
     print('M.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli')
     
     #define microbe a
-    a_species = input('Type in your choice for Microbe A: ')
+    microbe_a_species = input('Type in your choice for Microbe A: ')
     
     #should be an integer value, from 1-100 
     microbe_a_colony = colony_size.colony_growth() 
