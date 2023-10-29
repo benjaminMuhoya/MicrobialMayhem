@@ -11,7 +11,7 @@ import math
 import json
 import os
 import microbe_class
-from Env_scoring import calculate_score_env 
+import Env_scoring
 from species_dict import spp_dict # dictionary of species attributes
 
 def main():
@@ -42,22 +42,22 @@ def main():
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
     #enter one environment for the microbes to battle
-#    env = input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
-    
-#    env_score = calculate_env_score(env)
+    env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
+    microbe_env = Env_scoring.calculate_score_env('env')
 
     print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
   #now, call class attributes - working on this now
   #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
-
-  microbeA = microbe_class.Microbe(species = a_species, growth_rate = int(spp_dict[a_species][growth_rate]), kin_select = int(spp_dict[a_species][kin_select]))
-  microbeB = microve_class.Microbe(species = b_species, growth_rate = int(spp_dict[microbe_b_species][growth_rate]), kin_select = int(spp_dict[b_species][kin_select]))
+  ##microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
   
-#Who wins? A or B?
 
-  A_total = sum(microbeA.score(), (colony_size * microbeA.growth_rate())) #add in env_score
-  B_total = sum(microbeB.score(), (colony_size * microbeB.growth_rate())) #add in env_score
+#if microbe_a_total > microbe_b_total:
+ # print ('Microbe A wins!')
+#if microbe_b_total > microbe_a_total:
+ # print('Microbe B wins!')
+#if microbe_a_total == microbe_b_total:
+ # print('Microbe A and B both survived!')
 
   #Who wins? A or B?
  
