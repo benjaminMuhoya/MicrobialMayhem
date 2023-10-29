@@ -10,11 +10,14 @@ import math
 import json
 import os
 import microbe_class
-from Env_scoring import calculate_score_env
+import general_usr_in
+
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
 def main():
-  print('Welcome to Microbial Mayhem!\nChoose two microbes to fight!')
+  print('Welcome to Microbial Mayhem!')
+  with open('pic2.txt','r') as pic_obj:
+    print(pic_obj.read())
   user_in = input('Press o +return for microbe options: ')
   if user_in == 'o':
     print('M.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli')
@@ -23,8 +26,7 @@ def main():
     #should be an integer value, from 1-100 
     microbe_a_colony = colony_size.colony_growth() 
     #a yes or a no
-    microbe_a_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
-
+    microbe_a_sec = sec_sys.calc_secretion(general_usr_in.yes_no_input(input('Does your microbe have a secretion system? Yes or No?: ')))
     #now, define microbe b
     microbe_b_species = input('Type in your choice for Microbe B: ')
     #should be an integer value, from 1-100 
@@ -33,12 +35,13 @@ def main():
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
     #enter one environment for the microbes to battle
-    microbe_env = calculate_score_env('env')
+    microbe_env = input('Chhoose an envrionment for your microbes to battle: Alkaline, Hot, Cold, Acidic, Salty, Temperate: ')
 #    microbe_env = calculate_score_env('env')
+
 
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
-    print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
+ # print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
   #now, call class attributes - working on this now
   #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 

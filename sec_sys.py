@@ -2,8 +2,9 @@
 
 def calc_secretion(prg_input,counter=0):
   sec_YES_m = 'You have confirmed that your organism has a type VI secretion system'
-  sec_NO_m = 'You have confirmed that your organism does not have a type VI secretion system'
-  if prg_input == 'Yes':
+  sec_NO_m = 'You have confirmed that your organism does NOT have a type VI secretion system'
+  
+  if prg_input == 'YES':
     print(f'{sec_YES_m}')
     counter = counter + 5
   else:
