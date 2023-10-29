@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import sys
-import re
 
 ##Define the Environment
 ##1. Ph [high vs low] ##2. Temp [high vs low] ##3. Salinity [high vs low] ##4. Presence of antibiotics
@@ -11,7 +9,7 @@ import re
 ##Thermophile can survive well in high temp (hence the reasone some of their enzymes are used for experiment e.g. Taq polymerase in PCR), Low temp slows most bacteria down unless they are cryophiles that do well in low temp, and then there is rtp
 ##Halophiles can tolerate extreme salinity
 def calculate_score_env(env):
-  env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, in drugs")  
+  ##env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, in drugs")  
   Extreme = ('Alkaline','Hot','Cold','Acidic','Salty', 'in drugs')
   Value_of_Env ={'extreme':-10, 'neutral':0}
 
@@ -28,7 +26,9 @@ def calculate_score_env(env):
     env_score = int(Value_of_Env['neutral'] + score)
   return env_score
 
+  if __name__ == '__main__': #to make sure that this program doesn't run where it's imported, but only when we call it specifically
+    calculate_score_env()
 ##End of Class
-Total_object = calculate_score_env('env')
-print('Extreme ENV is penalized -10, superpower gives you +100, if nothing is selected then 0 is assigned, so, the POWER value in the environment you chose in the two steps above is ===>>>>', Total_object, 'LETS BATTLE??')
+##Total_object = calculate_score_env('env')
+##print('Extreme ENV is penalized -10, superpower gives you +100, otherwise 0 if nothing is selected then 0 is assigned, so, ===>>>>', Total_object, 'LETS BATTLE??')
 ##Does the class work here?

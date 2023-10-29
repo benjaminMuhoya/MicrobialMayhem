@@ -10,7 +10,7 @@ import math
 import json
 import os
 import microbe_class
-from Env_scoring import calculate_score_env
+import Env_scoring
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
 def main():
@@ -33,8 +33,9 @@ def main():
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
     #enter one environment for the microbes to battle
-    microbe_env = calculate_score_env('env')
-#    microbe_env = calculate_score_env('env')
+    env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
+    microbe_env = Env_scoring.calculate_score_env('env')
+    #microbe_env = calculate_score_env('env')
 
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
@@ -43,6 +44,7 @@ def main():
   #now, call class attributes - working on this now
   #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
   microbe_A_def = microbe_class.Microbe(microbe_a_species,1,1)
+  microbe_B_def = microbe_class.Microbe(microbe_b_species,2,2)
  # microbe_B_def = Microbe(microbe_b_species,2,2)
   ##microbe_A_def = Microbe(microbe_a_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
   ##microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
@@ -52,8 +54,10 @@ def main():
 #function needs (), but values 
   microbeA_test = microbe_A_def.BGC_content() 
   Environment_effects = microbe_env
-  Total_score = microbeA_test + Environment_effects
-  print(f'{microbeA_test}, {Environment_effects}, the total is = {Total_score}')
+  Total_score_A = microbeA_test + Environment_effects
+  microbeB_test = microbe_A_def.BGC_content()
+  Total_score_B = microbeB_test + Environment_effects
+  print(f'{microbeA_test}, {Environment_effects}, the total is = {Total_score_A},{microbeB_test}, {Environment_effects}, the total is = {Total_score_A}')
 #microbe_a_total = microbe_A_def.BGC_content() + microbe_A_def.growth_Rate + microbe_a_colony
 #microbe_b_total = 0
 
