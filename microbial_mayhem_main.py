@@ -51,7 +51,9 @@ def main():
 #Who wins? A or B?
 #function needs (), but values 
   microbeA_test = microbe_A_def.BGC_content() 
-  print(f'{microbeA_test}')
+  Environment_effects = microbe_env
+  Total_score = microbeA_test + Environment_effects
+  print(f'{microbeA_test}, {Environment_effects}, the total is = {Total_score}')
 #microbe_a_total = microbe_A_def.BGC_content() + microbe_A_def.growth_Rate + microbe_a_colony
 #microbe_b_total = 0
 
