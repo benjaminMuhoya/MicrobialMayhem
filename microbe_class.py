@@ -50,34 +50,26 @@ class Microbe():
         mibig = Microbe.Get_database()
         if self.species == "E.coli":
             species = "Escherichia coli"
-            print(species)
         if self.species == "M.tuberculosis":
             species = "Mycobacterium tuberculosis H37Rv"
-            print(species)
         if self.species == "V.paramaris":
             species = "Verrucosis paramaris AB-18-032"
-            print(species)
         if self.species == "M.alcalica":
             species = "Methylophaga alcalica"
-            print(species)
         if self.species == "S.aureus":
             species = "Staphylococcus aureus"
-            print(species)
         if self.species == "V.neptunius":
             species = "Vibrio neptunius"
-            print(species)
         if self.species == "P.fluorescens":
             species = "Pseudomonas fluorescens"
-            print(species)
         if self.species == "K.pneumoniae":
             species = "Klebsiella pneumoniae"
-            print(species)
         try:
-            organism = mibig[self.species]['cluster']['organism_name']
+            organism = mibig[species]['cluster']['organism_name']
             BGC_score = 0
 			#name= f"Microbe fighter name: {mibig[microbe]['cluster']['organism_name']}"
 			#BGC_class: f"\tBGC class: {mibig[microbe]['cluster']['biosyn_class'][0]}"
-            for compound in mibig[self.species]['cluster']['compounds']:
+            for compound in mibig[species]['cluster']['compounds']:
 				#gene = f"\tGene (gear)of microbe: {compound['compound']} +1"
                 BGC_score +=1
                 try:
@@ -89,7 +81,7 @@ class Microbe():
                     continue
         except KeyError:
              print("Please provide a valid microbial fighter species")
-        return BGC_score 
+        return float(BGC_score) 
 
     def defense(self):
 
@@ -152,7 +144,8 @@ class Microbe():
         self.strength = sum(attributes)
         return self.strength
  
-microbe1 = Microbe("M.tuberculosis", 1, 2)
+microbe1 = Microbe("P.fluorescens", 1, 2)
+print(microbe1.BGC_content())
 print(microbe1.defense())
 #iGC_content(self)
 #print(microbe1.BGC_score())
