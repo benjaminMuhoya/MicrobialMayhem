@@ -2,6 +2,7 @@
 
 #this is the file where the main scripting will go
 #it is NOT the class file, it is NOT a method/function file
+import colony_size
 
 #The following lines import all of our methods in our class
 import sec_sys
@@ -15,16 +16,17 @@ def main():
   user_in = input('Press o +return for microbe options: ')
   if user_in == 'o':
     print('M. tuberculosis\nV. paramaris\nA. nidulans')
+    #define microbe a
     microbe_a_species = input('Type in your choice for Microbe A: ')
     #should be an integer value, from 1-100 
-    microbe_a_colony = int(input('Please enter the size of your colony, size 1-1000: ')) 
+    microbe_a_colony = colony_size.colony_growth() 
     #a yes or a no
     microbe_a_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
- 
-    #now, define b
+
+    #now, define microbe b
     microbe_b_species = input('Type in your choice for Microbe B: ')
     #should be an integer value, from 1-100 
-    microbe_b_colony = int(input('Please enter the size of your colony, size 1-1000: '))
+    microbe_b_colony = colony_size.colony_growth()
     #a yes or a no
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
