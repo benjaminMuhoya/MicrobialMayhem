@@ -2,10 +2,13 @@
 
 #this is the file where the main scripting will go
 #it is NOT the class file, it is NOT a method/function file
+import colony_size
 
 #The following lines import all of our methods in our class
 import sec_sys
-
+import math
+import json
+import os
 
 #this is the main function where things are run
 def main():
@@ -13,16 +16,17 @@ def main():
   user_in = input('Press o +return for microbe options: ')
   if user_in == 'o':
     print('M. tuberculosis\nV. paramaris\nA. nidulans')
+    #define microbe a
     microbe_a_species = input('Type in your choice for Microbe A: ')
     #should be an integer value, from 1-100 
-    microbe_a_colony = input('Please enter the size of your colony, size 1-1000: ') 
+    microbe_a_colony = colony_size.colony_growth() 
     #a yes or a no
     microbe_a_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
- 
-    #now, define b
+
+    #now, define microbe b
     microbe_b_species = input('Type in your choice for Microbe B: ')
     #should be an integer value, from 1-100 
-    microbe_b_colony = input('Please enter the size of your colony, size 1-1000: ')
+    microbe_b_colony = colony_size.colony_growth()
     #a yes or a no
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
@@ -30,8 +34,12 @@ def main():
     microbe_env = input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
     print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
-  #now, call class attributes - working on this now  
 
+  #now, call class attributes - working on this now
+  #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
+  microbe_A_def = Microbe(microbe_a_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
+  microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
+  
 
 
 #this is the battle function, which compares the score of microbe A and microbe B

@@ -54,4 +54,5 @@ def defense_system_score(user_input):
 
   #extract user inputted microbe's defense score
   defense_score = float(defense_scores_dict[microbe])
-  return defense_score			
+  return defense_score	
+
