@@ -9,16 +9,15 @@ import re
 ##POWER == Halophile,Acidophile, Alkaliphile, Cryophile, Thermophile, Drug_resistance
 ##Most bacteria are neutrophiles hence 0 ...Acidophiles[-10] and alkaliphiles [+10]
 ##Thermophile can survive well in high temp (hence the reasone some of their enzymes are used for experiment e.g. Taq polymerase in PCR), Low temp slows most bacteria down unless they are cryophiles that do well in low temp, and then there is rtp
-
-
 ##Halophiles can tolerate extreme salinity
-env = input("Where do you want to fight? Choose your Environment")
 def calculate_score_env(env):
+  env = input("Where do you want to fight? Choose your Environment:Salty, Alkaline, Hot, Cold, Acidic, in drugs")  
   Extreme = ('Alkaline','Hot','Cold','Acidic','Salty', 'in drugs')
   Value_of_Env ={'extreme':-10, 'neutral':0}
+
   Super_power = ('Drug resistant','Halophile','Acidophile','Thermophile','Cryophile','Alkaliphile')
   Value_of_power = {'super_bug':100,'under_dog':0}
-  Special_attributes = input("Does you Fighter have any super powers?")  
+  Special_attributes = input("Does you Fighter have any super powers? is it a: Halophile, Alkaliphile, Acidophile, Thermophile, Cryophile, Drug resistant ")  
   if Special_attributes in Super_power:
     score = Value_of_power['super_bug']
   else:
@@ -30,5 +29,6 @@ def calculate_score_env(env):
   return env_score
 
 ##End of Class
-Total_object = calculate_score_env(env)
+Total_object = calculate_score_env('env')
 print('Here is the score for each line checked', Total_object)
+##Does the class work here?
