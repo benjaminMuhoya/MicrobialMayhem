@@ -15,7 +15,7 @@ def calculate_score_env(env):
 
   Super_power = ('Drug resistant','Halophile','Acidophile','Thermophile','Cryophile','Alkaliphile')
   Value_of_power = {'super_bug':100,'under_dog':0}
-  Special_attributes = input("Does you Fighter have any super powers? is it a: Halophile, Alkaliphile, Acidophile, Thermophile, Cryophile, Drug resistant")  
+  Special_attributes = input("Does you Fighter have any super powers? Pick from Halophile, Alkaliphile, Acidophile, Thermophile, Cryophile, Drug resistant: ")  
   if Special_attributes in Super_power:
     score = Value_of_power['super_bug']
   else:
