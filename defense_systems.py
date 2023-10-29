@@ -9,8 +9,8 @@ def defense(user_input):
   microbe = user_input
 
   #define the input and output files path
-  in_directory = '/Users/pfb19/MicrobialMayhem/defense_files_input'
-  out_directory = '/Users/pfb19/MicrobialMayhem/defense_files_output'
+  in_directory = './defense_files_input'
+  out_directory = './defense_files_output'
  
   #initialize defense system scores dictionary 
   defense_scores_dict = {}
