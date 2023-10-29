@@ -27,7 +27,7 @@ def output_statement(user_winner, microbe_winner):
         header = 'That was a good fight!'
         microbe_statement = header + '\n'
 
-    winner_statement = f'{microbe_winner} won!'
+    winner_statement = f'{microbe_winner} wins!'
     microbe_statement = microbe_statement + '\n' + winner_statement + '\n'
 
     #open species_info.txt file and extract line with microbe name listed, store in microbe_info
