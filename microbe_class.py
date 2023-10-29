@@ -2,7 +2,7 @@
 
 import math
 
-class Microbe(object_input):
+class Microbe():
 
     # define class attributes
 
@@ -12,7 +12,7 @@ class Microbe(object_input):
 
         self.species = str(species)
         self.growth_rate = int(growth_rate)
-        self.bgc_content = bgc_content
+        self.bgc_content = int(bgc_content)
         self.kin_select = int(kin_select)
 
         # calculate impact of kin selection on microbe strength
@@ -21,7 +21,7 @@ class Microbe(object_input):
     # calling Microbe.growth_rate()
 
     growth_rate = 1
-
+    attributes = []
     # define class method: microbe strength (based on attributes and species gene content)
     
     def strength(self):
@@ -29,8 +29,10 @@ class Microbe(object_input):
             self.fitness = (self.growth_rate - self.kin_select) * 10
         else:
             self.fitness = self.growth_rate
-        self.strength = sum(sum(bgc_content.values()), self.growth_rate)
-    return self.strength
+        attributes = [self.bgc_content, self.growth_rate, self.fitness]
+        self.strength = sum(attributes)
+        return self.strength
  
 
-
+#microbe1 = Microbe("E. coli", 1, 23, 2)
+#print(microbe1.strength())
