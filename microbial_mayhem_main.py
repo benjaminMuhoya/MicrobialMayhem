@@ -54,35 +54,20 @@ def main():
     #microbes are set
  # print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
     env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
-    microbe_env = Env_scoring.calculate_score_env('env')
+    env_score = Env_scoring.calculate_score_env('env')
 
     print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
-  #now, call class attributes - working on this now
-  #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
-  ##microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
-  
-
-#if microbe_a_total > microbe_b_total:
- # print ('Microbe A wins!')
-#if microbe_b_total > microbe_a_total:
- # print('Microbe B wins!')
-#if microbe_a_total == microbe_b_total:
- # print('Microbe A and B both survived!')
+  A_total = sum(microbeA.score(), (microbe_a_colony * microbeA.growth_rate()), env_score)
+  B_total = sum(microbeB.score(), (microbe_b_colony * microbeB.growth_rate()), env_score)
 
   #Who wins? A or B?
- 
-  winner = max(A_total, B_total)
-
-# determine winner by comparing Microbe() scores
-
-#  def battle(microbeA,microbeB):
-#    if microbeA.compete > microbeB.compete:
-#      return microbeA
-#    elif microbeB.compete > microbeA.compete:
-#      return microbeB
-#    else:
-#      return microbeA, microbeB    
+  if A_total > B_total:
+    winner = a_species
+  if A_total < B_total:
+    winner = b_species
+  if A_total == B_total:
+    winner = 'tie'
 
 if __name__ == "__main__":
   main()
