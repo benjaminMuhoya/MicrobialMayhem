@@ -42,18 +42,15 @@ def main():
 
   #now, call class attributes - working on this now
   #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
-  microbe_A_def = microbe_class.Microbe(microbe_a_species,1,1)
- # microbe_B_def = Microbe(microbe_b_species,2,2)
+  microbe_A_def = microbe_class.Microbe(microbe_a_species,3,4)
+  microbe_B_def = microbe_class.Microbe(microbe_b_species,5,6)
   ##microbe_A_def = Microbe(microbe_a_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
   ##microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
   
 
 #Who wins? A or B?
-#function needs (), but values 
-  microbeA_test = microbe_A_def.BGC_content() 
-  print(f'{microbeA_test}')
-#microbe_a_total = microbe_A_def.BGC_content() + microbe_A_def.growth_Rate + microbe_a_colony
-#microbe_b_total = 0
+#function needs (), but values do not need
+#microbe_a_total = microbe_A_def.BGC_content() + microbe_A_def.growth_rate + microbe_a_colony.kin_select
 
 #if microbe_a_total > microbe_b_total:
  # print ('Microbe A wins!')
