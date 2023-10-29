@@ -21,51 +21,48 @@ from microbe_info_output import output_statement
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
 def main():
-  print('Welcome to Microbial Mayhem!')
+  print('\nWelcome to Microbial Mayhem!\n')
   with open('pic2.txt','r') as pic_obj:
     print(pic_obj.read())
   
-  user_in = input('Press o +return for microbe options: ')
+  user_in = input('\nPress o +return for microbe options: ')
   
   if user_in == 'o':
     for key in spp_dict.keys():
         print(key)
-    
+        
     #define microbe a
-    microbe_a_species = input('Type in your choice for Microbe A: ')
+    microbe_a_species = input('\nType in your choice for Microbe A: ')
     
     #should be an integer value, from 1-100 
     microbe_a_colony = colony_size.colony_growth() 
     
     #a yes or a no
-    microbe_a_sec = sec_sys.calc_secretion(general_usr_in.yes_no_input(input('Does your microbe have a secretion system? These area toxin-injection weapons for attacking neighbors.\nYes or No?: ')))
+    microbe_a_sec = sec_sys.calc_secretion(general_usr_in.yes_no_input(input('\nDoes your microbe have a secretion system? These area toxin-injection weapons for attacking neighbors.\nYes or No?: ')))
 
-    #now, define microbe b
-    microbe_b_species = input('Type in your choice for Microbe B: ')
+    ## set random microbe b
+    species_list = list(spp_dict.keys())
+
+    rand_b_species = random.choice(species_list)
+    rand_b_colony = random.randrange(1,1000)
+    rand_b_sec = sec_sys.calc_secretion(random.choice(['Yes', 'No']))
     
-    #should be an integer value, from 1-100 
-    microbe_b_colony = colony_size.colony_growth()
-    
-    #a yes or a no
-    microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
-  
-    #enter one environment for the microbes to battle
-#    microbe_env = calculate_score_env('env')
-
-
+    print(f'\nYour opponent is {rand_b_species}!\n')
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
  # print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
-    env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
+    env = input("\nWhere do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
     env_score = Env_scoring.calculate_score_env('env')
 
-    print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
+    print(f'\nMicrobe A is {microbe_a_species} and Microbe B is {rand_b_species}. Lets battle!\n')
 
   microbeA = microbe_class.Microbe(microbe_a_species, spp_dict[microbe_a_species]['growth_rate'], spp_dict[microbe_a_species]['kin_select'])
-  microbeB = microbe_class.Microbe(microbe_b_species, spp_dict[microbe_b_species]['growth_rate'], spp_dict[microbe_b_species]['kin_select']) 
+
+  randB = microbe_class.Microbe(rand_b_species, spp_dict[rand_b_species]['growth_rate'], spp_dict[rand_b_species]['kin_select'])
 
   A_total = float(microbeA.strength()) + float((microbe_a_colony * microbeA.growth_rate)) + float(env_score) + float(microbe_a_sec)
-  B_total = float(microbeB.strength()) + float((microbe_b_colony * microbeB.growth_rate)) + float(env_score) + float(microbe_b_sec)
+
+  B_total = float(randB.strength()) + float((rand_b_colony * randB.growth_rate)) + float(env_score) + float(rand_b_sec)
 
   #Who wins? A or B?
   if A_total > B_total:
@@ -73,10 +70,10 @@ def main():
     microbe_winner = microbe_a_species
   if A_total < B_total:
     user_winner = 'B'
-    microbe_winner = microbe_b_species
+    microbe_winner = rand_b_species
   if A_total == B_total:
     user_winner = 'tie'
-    microbe_winner = f'{microbe_a_species} and {microbe_b_species}'
+    microbe_winner = f'{microbe_a_species} and {rand_b_species}'
 
   print(output_statement(user_winner, microbe_winner))
 
