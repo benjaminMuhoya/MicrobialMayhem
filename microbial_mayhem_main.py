@@ -16,7 +16,7 @@ import Env_scoring
 from species_dict import spp_dict
 import random
 from microbe_info_output import output_statement 
-
+from species_menu import species_menu
 
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
@@ -28,11 +28,12 @@ def main():
   user_in = input('\nPress o +return for microbe options: ')
   
   if user_in == 'o':
-    print('\nM.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli\n')
+    #print('\nM.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli\n')
     
     #define microbe a
-    microbe_a_species = input('\nType in your choice for Microbe A: ')
-    
+    #microbe_a_species = input('\nType in your choice for Microbe A: ')
+    microbe_a_species = species_menu()    
+
     #should be an integer value, from 1-100 
     microbe_a_colony = colony_size.colony_growth() 
     
