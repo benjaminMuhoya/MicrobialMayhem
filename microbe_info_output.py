@@ -3,8 +3,10 @@
 import random
 
 #winner is A or B, microbe is species
-def output_statement(winner):
+def output_statement(user_winner, microbe_winner):
     microbe_statement = ''
+    user_winner = user_winner
+    microbe_winner = microbe_winner
 
     #winning headers list
     winning_headers = ["Good choice! That's a strong microbe", "Nice going - you're super smart", "Wowwww, your microbe crushed it"]
@@ -21,7 +23,11 @@ def output_statement(winner):
         header = random.choice(losing_headers)
         microbe_statement = header + '\n'
 
-    winner_statement = f'{microbe_winner} was the winner'
+    if user_winner == 'tie':
+        header = 'That was a good fight!'
+        microbe_statement = header + '\n'
+
+    winner_statement = f'{microbe_winner} won!'
     microbe_statement = microbe_statement + '\n' + winner_statement + '\n'
 
     #open species_info.txt file and extract line with microbe name listed, store in microbe_info
