@@ -52,8 +52,8 @@ class Microbe():
             species = "Escherichia coli"
         if self.species == "M.tuberculosis":
             species = "Mycobacterium tuberculosis H37Rv"
-        if self.species == "V.paramaris":
-            species = "Verrucosis paramaris AB-18-032"
+        if self.species == "V.maris":
+            species = "Verrucosispora maris AB-18-032"
         if self.species == "M.alcalica":
             species = "Methylophaga alcalica"
         if self.species == "S.aureus":
