@@ -35,7 +35,7 @@ def main():
     microbe_a_colony = colony_size.colony_growth() 
     
     #a yes or a no
-    microbe_a_sec = sec_sys.calc_secretion(general_usr_in.yes_no_input(input('Does your microbe have a secretion system? These area toxin-injection weapons for attacking neighbors.\nYes or No?:'))
+    microbe_a_sec = sec_sys.calc_secretion(general_usr_in.yes_no_input(input('Does your microbe have a secretion system? These area toxin-injection weapons for attacking neighbors.\nYes or No?:')))
 
     #now, define microbe b
     b_species = input('Type in your choice for Microbe B: ')
