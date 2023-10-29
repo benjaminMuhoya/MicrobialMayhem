@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import sys
-import re
 
 ##Define the Environment
 ##1. Ph [high vs low] ##2. Temp [high vs low] ##3. Salinity [high vs low] ##4. Presence of antibiotics
@@ -11,13 +9,13 @@ import re
 ##Thermophile can survive well in high temp (hence the reasone some of their enzymes are used for experiment e.g. Taq polymerase in PCR), Low temp slows most bacteria down unless they are cryophiles that do well in low temp, and then there is rtp
 ##Halophiles can tolerate extreme salinity
 def calculate_score_env(env):
-  env = input("Where do you want to fight? Choose your Environment:Salty, Alkaline, Hot, Cold, Acidic, in drugs")  
+  ##env = input("Where do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, in drugs")  
   Extreme = ('Alkaline','Hot','Cold','Acidic','Salty', 'in drugs')
   Value_of_Env ={'extreme':-10, 'neutral':0}
 
   Super_power = ('Drug resistant','Halophile','Acidophile','Thermophile','Cryophile','Alkaliphile')
   Value_of_power = {'super_bug':100,'under_dog':0}
-  Special_attributes = input("Does you Fighter have any super powers? is it a: Halophile, Alkaliphile, Acidophile, Thermophile, Cryophile, Drug resistant ")  
+  Special_attributes = input("Does you Fighter have any super powers? is it a: Halophile, Alkaliphile, Acidophile, Thermophile, Cryophile, Drug resistant")  
   if Special_attributes in Super_power:
     score = Value_of_power['super_bug']
   else:
@@ -28,7 +26,9 @@ def calculate_score_env(env):
     env_score = int(Value_of_Env['neutral'] + score)
   return env_score
 
+  if __name__ == '__main__': #to make sure that this program doesn't run where it's imported, but only when we call it specifically
+    calculate_score_env()
 ##End of Class
-Total_object = calculate_score_env('env')
-print('Here is the score for each line checked', Total_object)
+##Total_object = calculate_score_env('env')
+##print('Extreme ENV is penalized -10, superpower gives you +100, otherwise 0 if nothing is selected then 0 is assigned, so, ===>>>>', Total_object, 'LETS BATTLE??')
 ##Does the class work here?
