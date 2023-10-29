@@ -144,8 +144,5 @@ class Microbe():
         self.strength = sum(attributes)
         return self.strength
  
-microbe1 = Microbe("V.maris", 1, 2)
-print(microbe1.BGC_content())
-print(microbe1.defense())
 #iGC_content(self)
 #print(microbe1.BGC_score())
