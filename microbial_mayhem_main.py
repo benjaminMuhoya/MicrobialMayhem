@@ -28,9 +28,8 @@ def main():
   user_in = input('\nPress o +return for microbe options: ')
   
   if user_in == 'o':
-    for key in spp_dict.keys():
-        print(key)
-        
+    print('\nM.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli\n')
+    
     #define microbe a
     microbe_a_species = input('\nType in your choice for Microbe A: ')
     
