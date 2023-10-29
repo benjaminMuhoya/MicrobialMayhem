@@ -10,5 +10,5 @@ def yes_no_input(user_input):
     fxn_out = 'YES'
   else:
     fxn_out = 'NO'
-  return(prg_input)
+  return(fxn_out)
 
