@@ -47,6 +47,30 @@ class Microbe():
     def BGC_content(self):
         BGC_score=0
         mibig = Microbe.Get_database()
+        if self.species == "E.coli":
+            species = "Escherichia coli"
+            print(species)
+        if self.species == "M.tuberculosis":
+            species = "Mycobacterium tuberculosis H37Rv"
+            print(species)
+        if self.species == "V.paramaris":
+            species = "Verrucosis paramaris AB-18-032"
+            print(species)
+        if self.species == "M.alcalica":
+            species = "Methylophaga alcalica"
+            print(species)
+        if self.species == "S.aureus":
+            species = "Staphylococcus aureus"
+            print(species)
+        if self.species == "V.neptunius":
+            species = "Vibrio neptunius"
+            print(species)
+        if self.species == "P.fluorescens":
+            species = "Pseudomonas fluorescens"
+            print(species)
+        if self.species == "K.pneumoniae":
+            species = "Klebsiella pneumoniae"
+            print(species)
         try:
             organism = mibig[self.species]['cluster']['organism_name']
             BGC_score = 0
