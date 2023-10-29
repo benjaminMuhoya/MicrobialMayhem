@@ -52,8 +52,8 @@ class Microbe():
             species = "Escherichia coli"
         if self.species == "M.tuberculosis":
             species = "Mycobacterium tuberculosis H37Rv"
-        if self.species == "V.paramaris":
-            species = "Verrucosis paramaris AB-18-032"
+        if self.species == "V.maris":
+            species = "Verrucosispora maris AB-18-032"
         if self.species == "M.alcalica":
             species = "Methylophaga alcalica"
         if self.species == "S.aureus":
@@ -88,8 +88,8 @@ class Microbe():
         microbe = self.species
 
         #define the input and output files path
-        in_directory = '/Users/pfb19/MicrobialMayhem/defense_files_input'
-        out_directory = '/Users/pfb19/MicrobialMayhem/defense_files_output'
+        in_directory = './defense_files_input'
+        out_directory = './defense_files_output'
 
         #initialize defense system scores dictionary 
         defense_scores_dict = {}
@@ -144,8 +144,5 @@ class Microbe():
         self.strength = sum(attributes)
         return self.strength
  
-microbe1 = Microbe("P.fluorescens", 1, 2)
-print(microbe1.BGC_content())
-print(microbe1.defense())
 #iGC_content(self)
 #print(microbe1.BGC_score())
