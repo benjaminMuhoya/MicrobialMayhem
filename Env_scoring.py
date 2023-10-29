@@ -14,20 +14,15 @@ import re
 
 
 ##Halophiles can tolerate extreme salinity
-
-
-class create_fight_env(object):
-  def calculate_score_env(self):  
-    with open (sys.argv[1], 'r') as types_of_env:
-      for env in types_of_env:
-        env = env.rstrip()
-        Extreme = ('Alkaline','Hot','Cold','Acidic','Salty')    
-        Value_of_Env ={'extreme':-10, 'neutral':0}        
-        if env in Extreme:
-          score = Value_of_Env['extreme']
-        else:
-          score = Value_of_Env['neutral']
-        return score
+env = input("Where do you want to fight? Choose your Environment")
+def calculate_score_env(env):
+  Extreme = ('Alkaline','Hot','Cold','Acidic','Salty')
+  Value_of_Env ={'extreme':-10, 'neutral':0}
+  if env in Extreme:
+    score = Value_of_Env['extreme']
+  else:
+    score = Value_of_Env['neutral']
+  return score
 ##End of Class
-Total_object = create_fight_env()
-print('Here is the score for each line checked', Total_object.calculate_score_env())
+Total_object = calculate_score_env(env)
+print('Here is the score for each line checked', Total_object)
