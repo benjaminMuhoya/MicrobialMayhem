@@ -10,7 +10,7 @@ spp_dict = { 'E.coli':
                          { 'growth_rate' : 1,
                            'kin_select'  : random.randrange(0,3),
                            'defenses'    : ''},
-             'V.parramaris':
+             'V.maris':
                          { 'growth_rate' : 0.5,
                            'kin_select'  : random.randrange(0,4),
                            'defenses'    : ''},
