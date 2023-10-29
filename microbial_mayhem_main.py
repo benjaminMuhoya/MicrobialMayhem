@@ -42,9 +42,9 @@ def main():
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
     #enter one environment for the microbes to battle
-#    env = input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
+    env = input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     
-#    env_score = calculate_env_score(env)
+    env_score = calculate_env_score(env)
 
     print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
@@ -56,8 +56,8 @@ def main():
   
 #Who wins? A or B?
 
-  A_total = sum(microbeA.score(), (colony_size * microbeA.growth_rate())) #add in env_score
-  B_total = sum(microbeB.score(), (colony_size * microbeB.growth_rate())) #add in env_score
+  A_total = sum(microbeA.score(), (microbe_a_colony * microbeA.growth_rate()), env_score)
+  B_total = sum(microbeB.score(), (microbe_b_colony * microbeB.growth_rate()), env_score)
 
   #Who wins? A or B?
  
