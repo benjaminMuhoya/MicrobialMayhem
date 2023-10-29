@@ -3,13 +3,12 @@
 #this is the file where the main scripting will go
 #it is NOT the class file, it is NOT a method/function file
 import colony_size
-
 #The following lines import all of our methods in our class
 import sec_sys
 import math
 import json
 import os
-
+from Env_scoring import calculate_score_env
 #this is the main function where things are run
 def main():
   print('Welcome to Microbial Mayhem!\nChoose two microbes to fight!')
@@ -31,14 +30,16 @@ def main():
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
     #enter one environment for the microbes to battle
-    microbe_env = input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
+    microbe_env = calculate_score_env('env')
+
+##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
     print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
   #now, call class attributes - working on this now
   #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
-  microbe_A_def = Microbe(microbe_a_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
-  microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
+  ##microbe_A_def = Microbe(microbe_a_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
+  ##microbe_B_def = Microbe(microbe_b_species,[ENTER GROWTH RATE],[ENTER KIN SELECT])
   
 
 
