@@ -21,6 +21,8 @@ def colony_growth(cfu=0):
    
  return colony_growth
 # To close the function - type the name () 
-colony_growth()
+
+if __name__ == '__main__': #to make sure that this program doesn't run where it's imported, but only when we call it specifically
+  colony_growth()
  
 
