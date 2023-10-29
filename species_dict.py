@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import random
 
@@ -17,7 +16,7 @@ spp_dict = { 'E.coli':
              'S.aureus':
                          { 'growth_rate' : 2.5,
                            'kin_select'  : random.randrange(0,5)},
-             'V.neptunis':
+             'V.neptunius':
                          { 'growth_rate' : 2,
                            'kin_select'  : random.randrange(0,1)},
              'P.fluorescens':
@@ -28,4 +27,3 @@ spp_dict = { 'E.coli':
                            'kin_select'  : random.randrange(0,8)}
 }          
 
-print(spp_dict['E.coli']['kin_select'])                         

@@ -19,7 +19,7 @@ def colony_growth(cfu=0):
    print(f'CFU: {cfu} - {message}')
    print(f'Score: {colony_growth_score}')  
    
- return colony_growth
+ return colony_growth_score
 # To close the function - type the name () 
 
 if __name__ == '__main__': #to make sure that this program doesn't run where it's imported, but only when we call it specifically
