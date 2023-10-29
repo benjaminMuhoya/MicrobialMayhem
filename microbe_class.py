@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import math
+import json
+import os
 
 class Microbe(object_input):
-
+	mibig = { }
+	temporal_dict = { }
     # define class attributes
 
     def __init__(self, species, bgc_content, growth_rate, kin_select):
@@ -23,7 +26,43 @@ class Microbe(object_input):
     growth_rate = 1
 
     # define class method: microbe strength (based on attributes and species gene content)
-    
+	mibig = Get_database()
+	BGC_content(self.species)
+
+	def Get_database():
+		path=os.listdir("./mibig_json/")
+		for filename in path:
+			with open("./mibig_json/"+filename, "r") as json_file_read:
+				json_data = json_file_read.read()
+				temporal_dict = json.loads(json_data)
+				species = temporal_dict['cluster']['organism_name']
+				mibig[species]={ }
+				mibig[species]=temporal_dict
+		return mibig
+
+	def BGC_content(self.species):
+		BGC_score=0
+		try:
+			organism = mibig[microbe]['cluster']['organism_name']
+			BGC_score = 0
+			#name= f"Microbe fighter name: {mibig[microbe]['cluster']['organism_name']}"
+			#BGC_class: f"\tBGC class: {mibig[microbe]['cluster']['biosyn_class'][0]}"
+			for compound in mibig[microbe]['cluster']['compounds']:
+				#gene = f"\tGene (gear)of microbe: {compound['compound']} +1"
+				BGC_score +=1
+				try:
+					if compound['chem_acts']:
+						for activity in compound['chem_acts']:
+						#print(f"\t\tEnhanced activity: {activity['activity']} +1") 
+						BGC_score+= 1
+				except KeyError:
+					continue
+		except KeyError:
+			print("Please provide a valid microbial fighter species")
+		return BGC_score 
+				
+
+
     def strength(self):
         if self.kin_select > 0:
             self.fitness = (self.growth_rate - self.kin_select) * 10
