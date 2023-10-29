@@ -3,7 +3,7 @@
 import random
 
 #winner is A or B, microbe is species
-def output_statement(winner, microbe):
+def output_statement(winner):
     microbe_statement = ''
 
     #winning headers list
