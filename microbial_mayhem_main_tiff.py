@@ -1,101 +1,75 @@
 #!/usr/bin/env python3
 
-import random
+#this is the file where the main scripting will go
+#it is NOT the class file, it is NOT a method/function file
 
-## Definition of microbe class
+#The following lines import all of our methods into our main file
 
-class Microbe(object_input):
-
-    # define class attributes
-    
-    def __init__(self, name, bgc_content, kin_selection):
-        
-        # baseline attributes, affected by methods.
-
-        self.name = name
-        self.growth_rate = 1
-        self.bgc_content = bgc_content 
-        # dict(bgc_content) = {'gene1' : 0 (absence), 'gene2' : 1 (presence)}
-        self.kin_select = int(kin_selection)
-        self.colony_size = int(colony_size) * (0.5 * self.kin_select)
-        
-        # calculate impact of kin selection on microbe strength
-        
-
-    # define class method: microbe strength (based on attributes and species gene content)
-    # consider removing strength function from class
-
-    def compete(self):
-        if self.kin_select > 0:
-            self.compete = (self.growth_rate - self.kin_select) * 10
-        else:
-            self.compete = self.growth_rate
-        self.compete = sum(sum(bgc_content.values)(), self.growth_rate)
-        return self.compete
-
-# create battle function
-
-def battle(microbe1, microbe2):
-    if microbe1.compete > microbe2.compete:
-        return microbe1
-    elif microbe2.compete > microbe1.compete:
-        return microbe2
-    else:
-        return random.choice([microbe1, microbe2])
+import colony_size
+import sec_sys
+import math
+import json
+import os
+import microbe_class
+from Env_scoring import calculate_score_env 
+from species_dict import spp_dict # dictionary of species attributes
 
 def main():
+  
+  print('Welcome to Microbial Mayhem!\nChoose two microbes to fight!')
+  
+  user_in = input('Press o +return for microbe options: ')
+  
+  if user_in == 'o':
+    print('M.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli')
+    
+    #define microbe a
+    a_species = input('Type in your choice for Microbe A: ')
+    
+    #should be an integer value, from 1-100 
+    microbe_a_colony = colony_size.colony_growth() 
+    
+    #a yes or a no
+    microbe_a_sec = sec_sys.calc_secretion(input('Does your microbe have a type VI secretion system? These area toxin-injection weapons for attacking neighbors.\nYes or No?: '))
 
-    # create microbe options with features
+    #now, define microbe b
+    b_species = input('Type in your choice for Microbe B: ')
+    
+    #should be an integer value, from 1-100 
+    microbe_b_colony = colony_size.colony_growth()
+    
+    #a yes or a no
+    microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
+  
+    #enter one environment for the microbes to battle
+#    env = input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
+    
+#    env_score = calculate_env_score(env)
 
-    species1 = Microbe('Species', bgc_content, kin_selection = 0)
-    species2 = Microbe('Species', bgc_content, kin_selection = 1)
+    print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
 
-    # get user input for microbe 
+  #now, call class attributes - working on this now
+  #Need growth rate and kin selection from dictionary that Clare and Tiffany are making 
 
-    print("Choose two microbes to battle!")
-    print("Option 1: [sp name]")
-    print("Option 2: [sp name]")
+  microbeA = microbe_class.Microbe(species = a_species, growth_rate = int(spp_dict[a_species][growth_rate]), kin_select = int(spp_dict[a_species][kin_select]))
+  microbeB = microve_class.Microbe(species = b_species, growth_rate = int(spp_dict[microbe_b_species][growth_rate]), kin_select = int(spp_dict[b_species][kin_select]))
 
-    choice1 = int(input("Choose first microbe (enter number): "))
-    choice2 = int(input("Choose second microbe (enter number): "))
+  A_total = sum(microbeA.score(), (colony_size * microbeA.growth_rate())) #add in env_score
+  B_total = sum(microbeB.score(), (colony_size * microbeB.growth_rate())) #add in env_score
 
-    if choice1 == 1:
-        m1 = ____
-    else:
-        m1 = ____
+  #Who wins? A or B?
+ 
+  winner = max(A_total, B_total)
 
-    if choice2 == 1:
-        m2 = ____
-    else:
-        m2 = ____
+# determine winner by comparing Microbe() scores
 
-    # get user input for colony size
-
-    ## note: try to make prettier with a function. (ideally, would use colony size for kin selection value)
-    cfu1 = int(input('How big is you colony 1? Choose a number between 0 and 1000')
-    cfu2 = int(input('How big is colony 2? Choose a number between 0 and 1000')
-
-    # get user input for environment variable
-
-    print("Choose an environment type:")
-    print("Options: Alkaline, Hot, Cold, Acidic, Salty, Temperate")
-
-    env = input("Pick one of the above. Where do you want to fight?!")
-
-    def calc_env_impact():
-        ___________
-
-    sp1_strength = sum(int(species1.compete(), cfu1, ___, ___))
-    sp2_strength = sum(int(species2.compete(), cfu2, ___, ___))
-
-    # commence battle
-
-    winner = battle(sp1_strength, sp2_strength)
-    print(f'The winner is {winner.name}!')
-
+#  def battle(microbeA,microbeB):
+#    if microbeA.compete > microbeB.compete:
+#      return microbeA
+#    elif microbeB.compete > microbeA.compete:
+#      return microbeB
+#    else:
+#      return microbeA, microbeB    
 
 if __name__ == "__main__":
-    main()
-           
-            
-        
+  main()
