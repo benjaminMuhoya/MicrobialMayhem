@@ -10,7 +10,7 @@ import math
 import json
 import os
 import microbe_class
-
+from Env_scoring import calculate_score_env
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
 def main():
@@ -33,7 +33,7 @@ def main():
     microbe_b_sec = sec_sys.calc_secretion(input('Does your microbe have a secretion system? Yes or No?: '))
   
     #enter one environment for the microbes to battle
-    microbe_env = input('Chhoose an envrionment for your microbes to battle: Alkaline, Hot, Cold, Acidic, Salty, Temperate: ')
+    microbe_env = calculate_score_env('env')
 #    microbe_env = calculate_score_env('env')
 
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
