@@ -140,12 +140,12 @@ class Microbe():
             fitness = float((self.growth_rate - 0.5) * 4)
         else:
             fitness = float(self.growth_rate - 0.5)
-        print(fitness)
+        #print(fitness)
         scores_list = [self.BGC_content(), self.defense(), fitness]
         score = sum(scores_list)
         return score
 
-#microbe1 = Microbe('K.pneumoniae', 3, 2)
+microbe1 = Microbe('K.pneumoniae', 3, 2)
 #print(microbe1.BGC_content())
 #print(microbe1.defense())
-#print(microbe1.strength())
+print(microbe1.strength())
