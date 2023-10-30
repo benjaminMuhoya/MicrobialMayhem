@@ -43,7 +43,6 @@ def main():
 
     rand_b_species = random.choice(species_list)
     rand_b_colony = random.choice([0, 5, 10])
-    print(rand_b_colony)
     rand_b_sec = sec_sys.calc_secretion(random.choice(['Yes', 'No']))    
 
     print(f'\nYour opponent is {rand_b_species}!\n')
