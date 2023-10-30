@@ -21,18 +21,25 @@ from species_menu import species_menu
 from option_menu_check import option_menu
 from env_menu import env_menu
 from playsound import playsound
+import importlib.util
 
 #this is the main function where things are run
 def main():
+
   print('\nWelcome to Microbial Mayhem!\n')
   
   #print ascii art 
   with open('pic3.txt','r') as pic_obj:
     print(pic_obj.read())
 
-  #play Tiffany's opening soundtrack
-  playsound('./microbial_mayhem_intro.mp3')
-  
+  #check if playsound module is installed
+  if importlib.util.find_spec('playsound') is None:
+    print('playsound and/or PyObjC is not installed')
+
+  else:
+    #play Tiffany's opening soundtrack
+    playsound('./microbial_mayhem_intro.mp3')
+
   # user_in = input('\nPress o +return for microbe options: ')
   user_in = option_menu()    
 
@@ -82,7 +89,12 @@ def main():
     microbe_winner = f'{microbe_a_species} and {rand_b_species}'
 
   print(output_statement(user_winner, microbe_winner))
-  ANIME_simple.Gui_pop('image') 
+
+  #check if pygame is installed   
+  if importlib.util.find_spec('pygame') is None:
+    print('pygame is not installed')
+  else:
+    ANIME_simple.Gui_pop('image')
 
 
 if __name__ == "__main__":
