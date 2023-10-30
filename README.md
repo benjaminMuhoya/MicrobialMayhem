@@ -15,6 +15,11 @@ conda install pygame
 ```
 git clone git@github.com:htoth99/MicrobialMayhem.git
 cd MicrobialMayhem
+
+## Alternative with HTTPS
+
+git clone https://github.com/htoth99/MicrobialMayhem.git
+cd MicrobialMayhem
 ```
 
 ## To play the game, simply type:
