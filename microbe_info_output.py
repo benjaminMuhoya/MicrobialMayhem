@@ -32,7 +32,7 @@ def output_statement(user_winner, microbe_winner):
     
     #if the fight is a tie, the microbe winner will have 'and' in it so don't add anything else to the microbe statement
     if "and" in microbe_winner:
-        continue
+        microbe_statement = microbe_statement
     
     else:
         #open species_info.txt file and extract line with microbe name listed, store in microbe_info
