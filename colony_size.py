@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Need to make a function so the program can run more than once
 def colony_growth(cfu=0):
- cfu=int(input('How big is you colony? Choose a number between 0 and 1000: '))
+ cfu=int(input('\nHow big is you colony? Choose a number between 0 and 1000: '))
  #print(cfu)
  if cfu<10:
    colony_growth_score = 0

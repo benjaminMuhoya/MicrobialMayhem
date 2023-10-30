@@ -16,7 +16,7 @@ import Env_scoring
 from species_dict import spp_dict
 import random
 from microbe_info_output import output_statement 
-
+from species_menu import species_menu
 
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
@@ -28,11 +28,10 @@ def main():
   user_in = input('\nPress o +return for microbe options: ')
   
   if user_in == 'o':
-    print('\nM.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli\n')
-    
-    #define microbe a
-    microbe_a_species = input('\nType in your choice for Microbe A: ')
-    
+    #print('\nM.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli\n')
+    #microbe_a_species = input('\nType in your choice for Microbe A: ')
+    microbe_a_species = species_menu()    
+
     #should be an integer value, from 1-100 
     microbe_a_colony = colony_size.colony_growth() 
     
@@ -43,9 +42,10 @@ def main():
     species_list = list(spp_dict.keys())
 
     rand_b_species = random.choice(species_list)
-    rand_b_colony = random.randrange(1,1000)
-    rand_b_sec = sec_sys.calc_secretion(random.choice(['Yes', 'No']))
-    
+    rand_b_colony = random.choice([0, 5, 10])
+    print(rand_b_colony)
+    rand_b_sec = sec_sys.calc_secretion(random.choice(['Yes', 'No']))    
+
     print(f'\nYour opponent is {rand_b_species}!\n')
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
@@ -53,7 +53,7 @@ def main():
     env = input("\nWhere do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or Antibiotic culture ")
     env_score = Env_scoring.calculate_score_env('env')
 
-    print(f'\nMicrobe A is {microbe_a_species} and Microbe B is {rand_b_species}. Lets battle!\n')
+    print(f'\nYour microbe is {microbe_a_species} and your opponent is {rand_b_species}. Lets battle!\n')
 
   microbeA = microbe_class.Microbe(microbe_a_species, spp_dict[microbe_a_species]['growth_rate'], spp_dict[microbe_a_species]['kin_select'])
 ##########################################This is the part that isn't working
