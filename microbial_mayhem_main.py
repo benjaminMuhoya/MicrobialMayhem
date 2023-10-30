@@ -52,20 +52,18 @@ def main():
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
  # print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
-    #get environment from env_menu function
-    env = env_menu()
     env_score = Env_scoring.calculate_score_env('env')
 
     print(f'\nYour microbe is {microbe_a_species} and your opponent is {rand_b_species}. Lets battle!\n')
 
   microbeA = microbe_class.Microbe(microbe_a_species, spp_dict[microbe_a_species]['growth_rate'], spp_dict[microbe_a_species]['kin_select'])
-
+##########################################This is the part that isn't working
   randB = microbe_class.Microbe(rand_b_species, spp_dict[rand_b_species]['growth_rate'], spp_dict[rand_b_species]['kin_select'])
 
   A_total = float(microbeA.strength()) + float((microbe_a_colony * microbeA.growth_rate)) + float(env_score) + float(microbe_a_sec)
 
   B_total = float(randB.strength()) + float((rand_b_colony * randB.growth_rate)) + float(env_score) + float(rand_b_sec)
-
+#######################################
   #Who wins? A or B?
   if A_total > B_total:
     user_winner = 'A'
