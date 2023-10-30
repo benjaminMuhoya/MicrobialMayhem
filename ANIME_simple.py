@@ -11,7 +11,7 @@ from itertools import cycle
 ##
 def Gui_pop(image):
   screen = pygame.display.set_mode((1000, 800))
-  o = pygame.image.load('May.png')
+  o = pygame.image.load('Mayhem.png')
   clock = pygame.time.Clock()
   background = pygame.image.load('lightning.jpeg')
   screen.blit(background, (0, 0))
