@@ -4,7 +4,7 @@
 #it is NOT the class file, it is NOT a method/function file
 
 #The following lines import all of our methods into our main file
-
+import sys
 import colony_size
 import sec_sys
 import math
