@@ -18,6 +18,7 @@ import random
 from microbe_info_output import output_statement 
 from species_menu import species_menu
 from option_menu_check import option_menu
+from env_menu import env_menu
 
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
@@ -45,14 +46,14 @@ def main():
 
     rand_b_species = random.choice(species_list)
     rand_b_colony = random.choice([0, 5, 10])
-    print(rand_b_colony)
     rand_b_sec = sec_sys.calc_secretion(random.choice(['Yes', 'No']))    
 
     print(f'\nYour opponent is {rand_b_species}!\n')
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
  # print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
-    env = input("\nWhere do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
+    #get environment from env_menu function
+    env = env_menu()
     env_score = Env_scoring.calculate_score_env('env')
 
     print(f'\nYour microbe is {microbe_a_species} and your opponent is {rand_b_species}. Lets battle!\n')
