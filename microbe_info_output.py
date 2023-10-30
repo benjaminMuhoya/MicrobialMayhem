@@ -24,22 +24,28 @@ def output_statement(user_winner, microbe_winner):
         microbe_statement = header + '\n'
 
     if user_winner == 'tie':
-        header = 'That was a good fight!'
+        header = 'That was a good fight! The microbes were tied.'
         microbe_statement = header + '\n'
 
     winner_statement = f'{microbe_winner} wins!'
     microbe_statement = microbe_statement + '\n' + winner_statement + '\n'
+    
+    #if the fight is a tie, the microbe winner will have 'and' in it so don't add anything else to the microbe statement
+    if "and" in microbe_winner:
+        continue
+    
+    else:
+        #open species_info.txt file and extract line with microbe name listed, store in microbe_info
+        with open("species_info.txt", "r") as species_info_in:
+            for line in species_info_in:
+                line = line.rstrip()
+                if line.startswith(microbe_winner):
+                    microbe_info = line
 
-    #open species_info.txt file and extract line with microbe name listed, store in microbe_info
-    with open("species_info.txt", "r") as species_info_in:
-        for line in species_info_in:
-            line = line.rstrip()
-            if line.startswith(microbe_winner):
-                microbe_info = line
+        #extract microbe info from microbe_info excluding everything outside the quotes ""
+        start_index = 1 + int(microbe_info.index('\"')) #extract index of first quote "
+        microbe_info = microbe_info[start_index:-1] #extract substring from microbe info
 
-    #extract microbe info from microbe_info excluding everything outside the quotes ""
-    start_index = 1 + int(microbe_info.index('\"')) #extract index of first quote "
-    microbe_info = microbe_info[start_index:-1] #extract substring from microbe info
-
-    microbe_statement = microbe_statement + '\n' + microbe_info + '\n'
+        microbe_statement = microbe_statement + '\n' + microbe_info + '\n'
+    
     return microbe_statement
