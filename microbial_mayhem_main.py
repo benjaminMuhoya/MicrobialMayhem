@@ -19,12 +19,18 @@ from microbe_info_output import output_statement
 from species_menu import species_menu
 from option_menu_check import option_menu
 from env_menu import env_menu
+from playsound import playsound
 
 #this is the main function where things are run
 def main():
   print('\nWelcome to Microbial Mayhem!\n')
+  
+  #print ascii art 
   with open('pic3.txt','r') as pic_obj:
     print(pic_obj.read())
+
+  #play Tiffany's opening soundtrack
+  playsound('./microbial_mayhem_intro.mp3')
   
   # user_in = input('\nPress o +return for microbe options: ')
   user_in = option_menu()    
