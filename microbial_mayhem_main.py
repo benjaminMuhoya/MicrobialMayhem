@@ -13,6 +13,7 @@ import os
 import microbe_class
 import general_usr_in
 import Env_scoring
+import ANIME_simple
 from species_dict import spp_dict
 import random
 from microbe_info_output import output_statement 
@@ -75,7 +76,7 @@ def main():
     microbe_winner = f'{microbe_a_species} and {rand_b_species}'
 
   print(output_statement(user_winner, microbe_winner))
-
+  ANIME_simple.Gui_pop('image') 
 
 
 if __name__ == "__main__":
