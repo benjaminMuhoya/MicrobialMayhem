@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import sys
+import os
+import contextlib
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 ###
 ###

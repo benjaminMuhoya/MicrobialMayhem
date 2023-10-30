@@ -8,7 +8,7 @@ This is the beta version! Thank you for being our tester :)
 ```
 pip3 install PyObjC
 conda install playsound
-conda install pygame
+pip install pygame
 ```
 
 ## Clone repository
