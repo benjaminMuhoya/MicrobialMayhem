@@ -4,15 +4,16 @@ Where battling bacteria teach you some biology.
 
 This is the beta version! Thank you for being our tester :)
 
-## install
+## Install
 ```
 pip3 install PyObjC
 conda install playsound
 ```
 
-## clone repository
+## Clone repository
 ```
 git clone git@github.com:htoth99/MicrobialMayhem.git
+cd MicrobialMayhem
 ```
 
 ## To play the game, simply type:
