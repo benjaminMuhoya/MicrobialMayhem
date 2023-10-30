@@ -60,10 +60,8 @@ def main():
   randB = microbe_class.Microbe(rand_b_species, spp_dict[rand_b_species]['growth_rate'], spp_dict[rand_b_species]['kin_select'])
 
   A_total = float(microbeA.strength()) + float((microbe_a_colony * microbeA.growth_rate)) + float(env_score) + float(microbe_a_sec)
-  print(A_total)
 
   B_total = float(randB.strength()) + float((rand_b_colony * randB.growth_rate)) + float(env_score) + float(rand_b_sec)
-  print(B_total)
 
   #Who wins? A or B?
   if A_total > B_total:
