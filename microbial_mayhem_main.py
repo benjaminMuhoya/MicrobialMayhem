@@ -17,6 +17,8 @@ from species_dict import spp_dict
 import random
 from microbe_info_output import output_statement 
 from species_menu import species_menu
+from option_menu_check import option_menu
+from env_menu import env_menu
 
 #from Env_scoring import calculate_score_env
 #this is the main function where things are run
@@ -25,8 +27,9 @@ def main():
   with open('pic2.txt','r') as pic_obj:
     print(pic_obj.read())
   
-  user_in = input('\nPress o +return for microbe options: ')
-  
+  #user_in = input('\nPress o +return for microbe options: ')
+  user_in = option_menu()    
+
   if user_in == 'o':
     #print('\nM.tuberculosis\nV.maris\nM.alcalica\nS.aureaus\nV.neptunius\nP.fluorescens\nK.pneumoniae\nE.coli\n')
     #microbe_a_species = input('\nType in your choice for Microbe A: ')
@@ -49,7 +52,8 @@ def main():
 ##input('Please enter one of the following environments where your microbes will battle: Alkaline, Hot, Cold, Acidic, Salty: ')
     #microbes are set
  # print(f'Microbe A is {microbe_a_species} and Microbe B is {microbe_b_species}. Lets battle!')
-    env = input("\nWhere do you want to fight? Choose your Environment: Salty, Alkaline, Hot, Cold, Acidic, or in drugs: ")
+    #get environment from env_menu function
+    env = env_menu()
     env_score = Env_scoring.calculate_score_env('env')
 
     print(f'\nYour microbe is {microbe_a_species} and your opponent is {rand_b_species}. Lets battle!\n')

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from superpower_menu import superpower_menu 
+
 ##Define the Environment
 ##1. Ph [high vs low] ##2. Temp [high vs low] ##3. Salinity [high vs low] ##4. Presence of antibiotics
 ##>> Given the above info, I defined six extreme environments and everything else is Neutral/Temperate
@@ -15,7 +17,7 @@ def calculate_score_env(env):
 
   Super_power = ('Drug resistant','Halophile','Acidophile','Thermophile','Cryophile','Alkaliphile')
   Value_of_power = {'super_bug':100,'under_dog':0}
-  Special_attributes = input("\nDoes you Fighter have any super powers? Pick from Halophile, Alkaliphile, Acidophile, Thermophile, Cryophile, Drug resistant: ")  
+  Special_attributes = superpower_menu()  
   if Special_attributes in Super_power:
     score = Value_of_power['super_bug']
   else:
