@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import random
 from pathlib import Path
+from typing import Optional
 import tkinter as tk
 from tkinter import messagebox, ttk
 
@@ -23,6 +24,53 @@ except ImportError:  # pragma: no cover - optional dependency
 
 ASCII_ART_FILE = Path(__file__).with_name("pic3.txt")
 INTRO_AUDIO_FILE = Path(__file__).with_name("microbial_mayhem_intro.mp3")
+
+BATTLE_ANIMATION_FRAMES = [
+  r"""
+      .--.            .--.
+    .'_\/_'.        .'_\/_'.
+    '. /\ .'  >>   '. /\ .'
+      ""||"            ""||"
+      (oo)            (oo)
+     /|  |\          /|  |\
+  _  _\__/__  vs  __\__/__  _
+ ( \/      \/ )    ( \/      \/ )
+  \__o--o__/        \__o--o__/
+""",
+  r"""
+      .--.            .--.
+    .'_\/_'.        .'_\/_'.
+    '. /\ .'  **   '. /\ .'
+      ""||"            ""||"
+      (><)            (oo)
+     /|  |\          /|  |\
+  _  _\__/__  vs  __\__/__  _
+ ( \/      \/ )    ( \/      \/ )
+  \__o--o__/        \__o--o__/
+""",
+  r"""
+      .--.            .--.
+    .'_\/_'.        .'_\/_'.
+    '. /\ .'  <<   '. /\ .'
+      ""||"            ""||"
+      (oo)            (><)
+     /|  |\          /|  |\
+  _  _\__/__  vs  __\__/__  _
+ ( \/      \/ )    ( \/      \/ )
+  \__o--o__/        \__o--o__/
+""",
+  r"""
+      .--.            .--.
+    .'_\/_'.        .'_\/_'.
+    '. /\ .'  **   '. /\ .'
+      ""||"            ""||"
+      (><)            (><)
+     /|  |\          /|  |\
+  _  _\__/__  vs  __\__/__  _
+ ( \/      \/ )    ( \/      \/ )
+  \__o--o__/        \__o--o__/
+""",
+]
 
 
 class MicrobialMayhemApp:
@@ -71,6 +119,12 @@ class MicrobialMayhemApp:
     self.summary_var = tk.StringVar()
     self.opponent_var = tk.StringVar()
 
+    self._animation_job: Optional[str] = None
+    self._animation_final_message: str | None = None
+    self._animation_frame_index = 0
+    self._animation_steps_remaining = 0
+    self._animation_interval_ms = 150
+
     self._setup_styles()
     self._build_start_screen()
 
@@ -85,6 +139,7 @@ class MicrobialMayhemApp:
     style.configure("TButton", padding=(10, 5))
 
   def _build_start_screen(self) -> None:
+    self._cancel_animation()
     if self.form_frame is not None:
       self.form_frame.destroy()
       self.form_frame = None
@@ -142,6 +197,7 @@ class MicrobialMayhemApp:
       ).pack(pady=(10, 0))
 
   def _build_form_screen(self) -> None:
+    self._cancel_animation()
     if self.start_frame is not None:
       self.start_frame.destroy()
       self.start_frame = None
@@ -293,6 +349,8 @@ class MicrobialMayhemApp:
     self.colony_readout.configure(text=str(int(float(self.colony_var.get()))))
 
   def _run_battle(self) -> None:
+    self._cancel_animation()
+
     try:
       colony_value = int(float(self.colony_var.get()))
     except (TypeError, ValueError):
@@ -369,10 +427,11 @@ class MicrobialMayhemApp:
     self.summary_var.set("\n".join(summary_lines))
 
     result_message = output_statement(user_winner, microbe_winner)
-    self._update_result_panel(result_message)
+    self._play_battle_animation(result_message)
 
   # ------------------------------------------------------------ utilities
   def _update_result_panel(self, message: str) -> None:
+    self._cancel_animation()
     if self.result_text is None:
       return
 
@@ -380,6 +439,53 @@ class MicrobialMayhemApp:
     self.result_text.delete("1.0", tk.END)
     self.result_text.insert(tk.END, message)
     self.result_text.configure(state=tk.DISABLED)
+
+  def _play_battle_animation(self, final_message: str) -> None:
+    if self.result_text is None:
+      return
+
+    self._cancel_animation()
+
+    self._animation_final_message = final_message
+    self._animation_frame_index = 0
+    # Show frames for ~7 seconds total.
+    self._animation_steps_remaining = int(7000 / self._animation_interval_ms)
+    if self._animation_steps_remaining <= 0:
+      self._update_result_panel(final_message)
+      return
+
+    self._run_animation_frame()
+
+  def _run_animation_frame(self) -> None:
+    if self.result_text is None:
+      return
+
+    if self._animation_steps_remaining <= 0:
+      final_message = self._animation_final_message or ""
+      self._animation_final_message = None
+      self._update_result_panel(final_message)
+      return
+
+    frame = BATTLE_ANIMATION_FRAMES[self._animation_frame_index % len(BATTLE_ANIMATION_FRAMES)]
+    self._animation_frame_index += 1
+    self._animation_steps_remaining -= 1
+
+    self.result_text.configure(state=tk.NORMAL)
+    self.result_text.delete("1.0", tk.END)
+    self.result_text.insert(tk.END, frame)
+    self.result_text.configure(state=tk.DISABLED)
+
+    self._animation_job = self.root.after(
+      self._animation_interval_ms,
+      self._run_animation_frame,
+    )
+
+  def _cancel_animation(self) -> None:
+    if self._animation_job is not None:
+      self.root.after_cancel(self._animation_job)
+      self._animation_job = None
+    self._animation_steps_remaining = 0
+    self._animation_final_message = None
 
   def _load_ascii_art(self) -> str:
     if ASCII_ART_FILE.exists():
