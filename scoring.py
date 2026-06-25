@@ -14,8 +14,7 @@ UNKNOWN = "UNKNOWN"
 BASE_SCORE = 25.0
 ENV_MATCH_BONUS = 12.0
 NO_EVIDENCE_PENALTY = -3.0
-SECRETION_YES = 5.0
-SECRETION_NO = -5.0
+BGC_ARSENAL_BONUS = 5.0
 RANDOM_VARIATION_RANGE = 2.0
 
 
@@ -73,7 +72,7 @@ def score_fighter(
     entry: BacteriumCatalogEntry,
     environment: str,
     colony_cfu: int,
-    has_secretion: bool,
+    brings_bgc_arsenal: bool,
     neither_has_match: bool,
     rng: random.Random,
 ) -> ScoreBreakdown:
@@ -91,7 +90,9 @@ def score_fighter(
         components.append(ScoreComponent("Environment", 0.0, f"No supported {target.lower()} evidence was available; unknown is not treated as a confirmed mismatch."))
     components.append(ScoreComponent("Defense", defensive_score(entry), "Resistance-related evidence contributes defensive capability only when present."))
     components.append(ScoreComponent("Offense", offensive_score(entry), "Capped biosynthetic/product/activity evidence contributes offensive potential."))
-    components.append(ScoreComponent("Secretion", SECRETION_YES if has_secretion else SECRETION_NO, "Secretion-system choice keeps the original +/-5 behavior."))
+    active_bgc_count = len(entry.accessions) if brings_bgc_arsenal else 0
+    arsenal_score = BGC_ARSENAL_BONUS if active_bgc_count else 0.0
+    components.append(ScoreComponent("BGC arsenal", arsenal_score, f"{active_bgc_count} known MIBiG BGC(s) brought into battle."))
     variation = round(rng.uniform(-RANDOM_VARIATION_RANGE, RANDOM_VARIATION_RANGE), 2)
     components.append(ScoreComponent("Battle variation", variation, "Small controlled random variation for close battles."))
     total = round(sum(c.value for c in components), 2)
@@ -104,13 +105,13 @@ def score_battle(
     environment: str,
     player_colony_cfu: int,
     opponent_colony_cfu: int,
-    player_has_secretion: bool,
-    opponent_has_secretion: bool,
+    player_brings_bgc_arsenal: bool,
+    opponent_brings_bgc_arsenal: bool,
     seed: int | None = None,
 ) -> tuple[ScoreBreakdown, ScoreBreakdown]:
     rng = random.Random(seed)
     neither_has_match = environment_status(player, environment) != MATCHED and environment_status(opponent, environment) != MATCHED
     return (
-        score_fighter(player, environment, player_colony_cfu, player_has_secretion, neither_has_match, rng),
-        score_fighter(opponent, environment, opponent_colony_cfu, opponent_has_secretion, neither_has_match, rng),
+        score_fighter(player, environment, player_colony_cfu, player_brings_bgc_arsenal, neither_has_match, rng),
+        score_fighter(opponent, environment, opponent_colony_cfu, opponent_brings_bgc_arsenal, neither_has_match, rng),
     )
