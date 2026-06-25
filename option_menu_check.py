@@ -5,9 +5,9 @@
 def option_menu():
   exit_while = 0
   while exit_while == 0:
-    user_in = input('\nPress o +return for microbe options: ')
+    user_in = input('\nPress o +return for microbe options: ').strip().lower()
     try:
-      if user_in == "o" or user_in=="O":
+      if user_in == "o":
         exit_while = 1
       else:
         print("Please select a valid option")
