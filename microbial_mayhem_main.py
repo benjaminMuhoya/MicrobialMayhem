@@ -14,7 +14,10 @@ os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "hide")
 
 import pygame
 
-from bacterial_catalog import BacteriumCatalogEntry, choose_opponent, get_catalog, sample_catalog, search_catalog
+from bacterial_catalog import BacteriumCatalogEntry, bgc_summary, choose_opponent, get_catalog, sample_catalog, search_catalog
+from colony_scoring import colony_growth_score, generate_opponent_cfu
+from environment_icons import ENVIRONMENT_ICONS
+from gui_helpers import pluralize, wrap_text
 from scoring import ScoreBreakdown, score_battle
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -62,7 +65,8 @@ class GameState:
     colony_label: str = "Decent-sized colony"
     has_secretion: bool | None = None
     opponent_entry: BacteriumCatalogEntry | None = None
-    opponent_colony_score: int = 0
+    opponent_colony_cfu: int = 0
+    opponent_colony_score: float = 0.0
     opponent_has_secretion: bool = False
     environment: str | None = None
     player_score: float = 0.0
@@ -86,22 +90,13 @@ class GameState:
     floating_texts: list[FloatingText] = field(default_factory=list)
 
 
-def colony_growth_score(cfu: int) -> tuple[int, str]:
-    """Reuse the original colony thresholds without terminal input."""
-    if cfu < 10:
-        return 0, "Tiny colony, you're risking it!"
-    if 10 <= cfu <= 100:
-        return 5, "Decent-sized colony"
-    return 10, "Huuuge colony, you're playing safe"
-
-
 def calculate_battle(state: GameState) -> None:
     player_breakdown, opponent_breakdown = score_battle(
         state.player_entry,
         state.opponent_entry,
         state.environment,
-        state.colony_score,
-        state.opponent_colony_score,
+        state.colony_cfu,
+        state.opponent_colony_cfu,
         bool(state.has_secretion),
         state.opponent_has_secretion,
         seed=state.battle_seed,
@@ -129,7 +124,8 @@ def reset_for_new_game(state: GameState) -> None:
     state.colony_score, state.colony_label = colony_growth_score(100)
     state.has_secretion = None
     state.opponent_entry = None
-    state.opponent_colony_score = 0
+    state.opponent_colony_cfu = 0
+    state.opponent_colony_score = 0.0
     state.opponent_has_secretion = False
     state.environment = None
     state.player_score = state.opponent_score = 0.0
@@ -219,7 +215,7 @@ class MicrobialMayhemGUI:
 
     def refresh_catalog_choices(self) -> None:
         self.state.catalog_choices = sample_catalog(10, catalog=self.catalog)
-        self.state.selected_catalog_entry = self.state.catalog_choices[0] if self.state.catalog_choices else None
+        self.state.selected_catalog_entry = None
         self.state.scroll_offset = 0
         self.state.search_message = f"Showing {len(self.state.catalog_choices)} random database-derived bacteria."
 
@@ -302,22 +298,7 @@ class MicrobialMayhemGUI:
         return rect
 
     def wrap(self, text: str, font, width: int) -> list[str]:
-        lines, current = [], ""
-        for word in text.replace("\n", " \n ").split():
-            if word == "\n":
-                lines.append(current)
-                current = ""
-                continue
-            candidate = (current + " " + word).strip()
-            if font.size(candidate)[0] <= width:
-                current = candidate
-            else:
-                if current:
-                    lines.append(current)
-                current = word
-        if current:
-            lines.append(current)
-        return lines
+        return wrap_text(text, width, lambda candidate: font.size(candidate)[0])
 
     def draw_wrapped(self, text: str, rect, font, color, line_gap=4) -> int:
         y = rect.top
@@ -347,29 +328,79 @@ class MicrobialMayhemGUI:
         self.add_button((565, 103, 235, 44), "Show 10 Different Bacteria", self.refresh_catalog_choices, small=True)
         self.text(self.state.search_message, self.small, (245, 250, 255), topleft=(70, 153))
 
-        list_top = 185
+        list_panel = pygame.Rect(70, 185, 505, 420)
+        info_panel = pygame.Rect(600, 185, 330, 420)
+        pygame.draw.rect(self.screen, (10, 24, 38, 170), list_panel, border_radius=14)
+        pygame.draw.rect(self.screen, (10, 24, 38, 190), info_panel, border_radius=14)
+        pygame.draw.rect(self.screen, (108, 231, 218), list_panel, 1, border_radius=14)
+        pygame.draw.rect(self.screen, (108, 231, 218), info_panel, 1, border_radius=14)
+
+        list_top = list_panel.y + 12
         visible = self.state.catalog_choices[self.state.scroll_offset:self.state.scroll_offset + 10]
         for idx, entry in enumerate(visible):
-            y = list_top + idx * 42
-            label = f"{entry.full_name} ({entry.record_count} BGC)"
+            y = list_top + idx * 39
+            label = f"{entry.full_name}"
             selected = self.state.selected_catalog_entry and entry.catalog_id == self.state.selected_catalog_entry.catalog_id
-            self.add_button((70, y, 500, 36), label, lambda e=entry: setattr(self.state, "selected_catalog_entry", e), selected=selected, small=True)
-            features = ", ".join((entry.products[:1] + entry.activities[:1])[:2]) or entry.trait_summary()
-            self.text(features[:45], self.small, (220, 235, 240), topleft=(590, y + 8))
+            self.add_button((82, y, 480, 34), label, lambda e=entry: setattr(self.state, "selected_catalog_entry", e), selected=selected, small=True)
         if len(self.state.catalog_choices) > 10:
-            track = pygame.Rect(930, list_top, 12, 420)
+            track = pygame.Rect(565, list_panel.y + 12, 8, 392)
             pygame.draw.rect(self.screen, (70, 90, 105), track, border_radius=6)
             thumb_h = max(35, int(track.height * 10 / len(self.state.catalog_choices)))
             max_offset = max(1, len(self.state.catalog_choices) - 10)
             thumb_y = track.y + int((track.height - thumb_h) * self.state.scroll_offset / max_offset)
             pygame.draw.rect(self.screen, (146, 255, 167), (track.x, thumb_y, track.width, thumb_h), border_radius=6)
 
-        info = pygame.Rect(70, 615 - 140, 850, 95)
-        if self.state.selected_catalog_entry:
-            entry = self.state.selected_catalog_entry
-            self.text(entry.display_name, self.font, (146, 255, 167), topleft=(info.x, info.y))
-            self.draw_wrapped(entry.description, pygame.Rect(info.x, info.y + 30, info.width, 58), self.small, (245, 250, 255))
+        self.draw_selected_organism_card(info_panel)
         self.add_button((380, 620, 240, 48), "Confirm Fighter", self.confirm_fighter, enabled=self.state.selected_catalog_entry is not None)
+
+    def draw_selected_organism_card(self, rect: pygame.Rect) -> None:
+        clip_before = self.screen.get_clip()
+        self.screen.set_clip(rect.inflate(-16, -16))
+        x, y = rect.x + 14, rect.y + 14
+        if not self.state.selected_catalog_entry:
+            self.draw_wrapped("Select an organism from the list to view its MIBiG-backed identity, traits, biosynthetic products, colony metadata, and a curious fact.", pygame.Rect(x, y, rect.width - 28, rect.height - 28), self.small, (245, 250, 255))
+            self.screen.set_clip(clip_before)
+            return
+        entry = self.state.selected_catalog_entry
+        y = self.draw_wrapped(entry.full_name, pygame.Rect(x, y, rect.width - 28, 48), self.font, (146, 255, 167))
+        lines = [
+            f"Battle name: {entry.display_name}",
+            f"Strain: {entry.strain or 'not specified'}",
+            f"Taxonomy group: {entry.taxonomy_group}",
+            bgc_summary(entry),
+            f"MIBiG: {', '.join(entry.accessions[:4])}",
+        ]
+        for line in lines:
+            self.text(line, self.small, (245, 250, 255), topleft=(x, y + 4))
+            y += 22
+        y += 4
+        self.draw_trait_chips(entry, x, y, rect.width - 28)
+        y += 58
+        details = [
+            f"Products: {', '.join(entry.products[:3]) or 'No named product available.'}",
+            f"Compound classes: {', '.join(entry.compound_classes[:3]) or 'No compound class annotation available.'}",
+            f"Activities: {', '.join(entry.activities[:3]) or 'No reported activity available.'}",
+            f"Colony appearance: {entry.colony_appearance}",
+            f"Curious fact: {entry.curious_fact}",
+        ]
+        self.draw_wrapped(" ".join(details), pygame.Rect(x, y, rect.width - 28, rect.bottom - y - 12), self.small, (245, 250, 255))
+        self.screen.set_clip(clip_before)
+
+    def draw_trait_chips(self, entry: BacteriumCatalogEntry, x: int, y: int, width: int) -> None:
+        traits = entry.traits or []
+        if not traits:
+            self.text("Environmental traits unknown", self.small, (255, 238, 133), topleft=(x, y))
+            return
+        cx, cy = x, y
+        for evidence in traits[:6]:
+            label = evidence.trait if evidence.trait != "Antimicrobial production" else "Antimicrobial producer"
+            chip_w = min(width, max(88, self.small.size(label)[0] + 18))
+            if cx + chip_w > x + width:
+                cx, cy = x, cy + 24
+            color = (77, 160, 210) if evidence.evidence_level.startswith("Direct") else (120, 100, 190)
+            pygame.draw.rect(self.screen, color, (cx, cy, chip_w, 20), border_radius=10)
+            self.text(label, self.small, (255, 255, 255), center=(cx + chip_w // 2, cy + 10))
+            cx += chip_w + 6
 
     def draw_choice_grid(self, title, choices, attr, screen_name) -> None:
         self.panel((70, 55, 860, 590))
@@ -377,7 +408,8 @@ class MicrobialMayhemGUI:
         for idx, (label, value) in enumerate(choices):
             col, row = idx % 2, idx // 2
             rect = (135 + col * 390, 160 + row * 82, 340, 58)
-            self.add_button(rect, label, lambda v=value: setattr(self.state, attr, v), getattr(self.state, attr) == value)
+            button_label = f"{ENVIRONMENT_ICONS.get(value, '')}  {label}" if screen_name == ENVIRONMENT_SELECTION else label
+            self.add_button(rect, button_label, lambda v=value: setattr(self.state, attr, v), getattr(self.state, attr) == value)
         selected = getattr(self.state, attr) is not None
         next_screen = {
             FIGHTER_SELECTION: COLONY_SELECTION,
@@ -388,9 +420,10 @@ class MicrobialMayhemGUI:
     def after_choice(self, next_screen: str) -> None:
         if next_screen == BATTLE_PREVIEW and self.state.opponent_entry is None:
             self.state.opponent_entry = choose_opponent(self.state.player_entry.catalog_id, catalog=self.catalog)
-            self.state.opponent_colony_score = random.choice([0, 5, 10])
-            self.state.opponent_has_secretion = random.choice([True, False])
             self.state.battle_seed = random.randrange(1_000_000)
+            self.state.opponent_colony_cfu = generate_opponent_cfu(self.state.battle_seed)
+            self.state.opponent_colony_score, _ = colony_growth_score(self.state.opponent_colony_cfu)
+            self.state.opponent_has_secretion = random.choice([True, False])
             calculate_battle(self.state)
         self.set_screen(next_screen)
 
@@ -417,10 +450,11 @@ class MicrobialMayhemGUI:
         self.panel((105, 60, 790, 600))
         self.text("Battle preview", self.mid, (255, 238, 133), center=(WIDTH // 2, 110))
         rows = [
-            ("Your microbe", self.state.player_entry.full_name),
-            ("Opponent", self.state.opponent_entry.full_name),
+            ("Your microbe", self.state.player_entry.display_name),
+            ("Opponent", self.state.opponent_entry.display_name),
             ("Environment", self.state.environment),
-            ("Colony", f"{self.state.colony_cfu} CFU ({self.state.colony_label})"),
+            ("Your colony", f"{self.state.colony_cfu} CFU ({self.state.colony_label}, +{self.state.colony_score:.1f})"),
+            ("Opponent colony", f"{self.state.opponent_colony_cfu} CFU (+{self.state.opponent_colony_score:.1f})"),
             ("Secretion system", "Yes" if self.state.has_secretion else "No"),
         ]
         y = 170
@@ -503,8 +537,10 @@ class MicrobialMayhemGUI:
         self.add_button((540, 585, 200, 54), "Quit", self.quit)
 
     def draw_score_breakdown(self, label: str, breakdown: ScoreBreakdown, x: int, y: int) -> None:
-        self.text(f"{label}: {breakdown.fighter_name[:28]}", self.small, (146, 255, 167), topleft=(x, y))
+        self.text(f"{label}: {breakdown.fighter_name[:26]}", self.small, (146, 255, 167), topleft=(x, y))
         y += 24
+        self.text(f"Colony size: {breakdown.colony_cfu} CFU", self.small, (255, 238, 133), topleft=(x, y))
+        y += 22
         for component in breakdown.components:
             self.text(f"{component.value:+.1f} {component.name}", self.small, (245, 250, 255), topleft=(x, y))
             y += 22

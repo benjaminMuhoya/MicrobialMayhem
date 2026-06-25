@@ -5,6 +5,7 @@ import random
 from dataclasses import dataclass
 
 from bacterial_catalog import BacteriumCatalogEntry
+from colony_scoring import colony_score_from_cfu
 from trait_inference import ADAPTATION_TRAITS
 
 MATCHED = "MATCHED"
@@ -29,6 +30,7 @@ class ScoreComponent:
 class ScoreBreakdown:
     fighter_name: str
     environment_status: str
+    colony_cfu: int
     total: float
     components: tuple[ScoreComponent, ...]
 
@@ -36,8 +38,9 @@ class ScoreBreakdown:
         return round(sum(c.value for c in self.components), 6)
 
 
-def colony_component(colony_score: int) -> ScoreComponent:
-    return ScoreComponent("Colony", float(colony_score), f"Existing colony-size rule contributed {colony_score:+.1f} points.")
+def colony_component(colony_cfu: int) -> ScoreComponent:
+    colony_score = colony_score_from_cfu(colony_cfu)
+    return ScoreComponent("Colony", float(colony_score), f"{colony_cfu} CFU contributed {colony_score:+.1f} points using the shared dynamic colony formula.")
 
 
 def offensive_score(entry: BacteriumCatalogEntry) -> float:
@@ -69,7 +72,7 @@ def environment_status(entry: BacteriumCatalogEntry, environment: str) -> str:
 def score_fighter(
     entry: BacteriumCatalogEntry,
     environment: str,
-    colony_score: int,
+    colony_cfu: int,
     has_secretion: bool,
     neither_has_match: bool,
     rng: random.Random,
@@ -77,7 +80,7 @@ def score_fighter(
     status = environment_status(entry, environment)
     target = ADAPTATION_TRAITS.get(environment, "environmental adaptation")
     components: list[ScoreComponent] = [ScoreComponent("Base", BASE_SCORE, "Every fighter starts from the same neutral base score.")]
-    components.append(colony_component(colony_score))
+    components.append(colony_component(colony_cfu))
     if status == MATCHED:
         components.append(ScoreComponent("Environment", ENV_MATCH_BONUS, f"Supported {target.lower()} evidence matches the {environment} environment."))
     elif neither_has_match:
@@ -92,15 +95,15 @@ def score_fighter(
     variation = round(rng.uniform(-RANDOM_VARIATION_RANGE, RANDOM_VARIATION_RANGE), 2)
     components.append(ScoreComponent("Battle variation", variation, "Small controlled random variation for close battles."))
     total = round(sum(c.value for c in components), 2)
-    return ScoreBreakdown(entry.full_name, status, total, tuple(components))
+    return ScoreBreakdown(entry.full_name, status, int(colony_cfu), total, tuple(components))
 
 
 def score_battle(
     player: BacteriumCatalogEntry,
     opponent: BacteriumCatalogEntry,
     environment: str,
-    player_colony_score: int,
-    opponent_colony_score: int,
+    player_colony_cfu: int,
+    opponent_colony_cfu: int,
     player_has_secretion: bool,
     opponent_has_secretion: bool,
     seed: int | None = None,
@@ -108,6 +111,6 @@ def score_battle(
     rng = random.Random(seed)
     neither_has_match = environment_status(player, environment) != MATCHED and environment_status(opponent, environment) != MATCHED
     return (
-        score_fighter(player, environment, player_colony_score, player_has_secretion, neither_has_match, rng),
-        score_fighter(opponent, environment, opponent_colony_score, opponent_has_secretion, neither_has_match, rng),
+        score_fighter(player, environment, player_colony_cfu, player_has_secretion, neither_has_match, rng),
+        score_fighter(opponent, environment, opponent_colony_cfu, opponent_has_secretion, neither_has_match, rng),
     )
