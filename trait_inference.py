@@ -25,7 +25,7 @@ KEYWORDS = {
     "Drug resistant": ("resistan", "drug", "antibiotic resistance", "self-resistance"),
 }
 ANTIMICROBIAL_KEYWORDS = ("antibacterial", "antibiotic", "antimicrobial", "antifungal")
-RESISTANCE_KEYWORDS = ("resistan", "self-resistance", "drug resistance", "antibiotic resistance")
+RESISTANCE_KEYWORDS = ("resistan", "self-resistance", "drug resistance", "antibiotic resistance", "immunity", "efflux")
 
 
 @dataclass(frozen=True)

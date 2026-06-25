@@ -91,7 +91,7 @@ def test_antibiotic_production_is_not_resistance():
     assert producer.has_trait("Antimicrobial production")
     assert not producer.has_trait("Drug resistant")
     assert p.environment_status == UNKNOWN
-    assert next(c for c in p.components if c.name == "Defense").value == 0
+    assert next(c for c in p.components if c.name == "Resistance defense").value == 0
 
 
 def test_duplicate_records_map_to_one_catalog_entry():
@@ -254,3 +254,45 @@ def test_bgc_arsenal_no_bonus_without_known_bgcs():
     arsenal = next(c for c in p.components if c.name == "BGC arsenal")
     assert arsenal.value == 0
     assert "0 known MIBiG BGC" in arsenal.explanation
+
+
+def test_multiple_bgcs_and_antimicrobial_activity_scores_offense_components():
+    multi = entry("Arsenal bug", products=["compound"], activities=["antibacterial"])
+    multi.accessions = ["B1", "B2", "B3", "B4", "B5", "B6"]
+    other = entry("Other bug")
+    p, _ = score_battle(multi, other, "Cold", 100, 100, True, False, seed=23)
+    components = {c.name: c.value for c in p.components}
+    assert components["BGC arsenal"] == 5
+    assert components["Known activity"] == 3
+    assert components["Offense total"] == 8
+
+
+def test_resistance_evidence_scores_defense_without_antimicrobial_activity():
+    resistant = entry("Resistant bug", [TraitEvidence("Drug resistant", DIRECT, "BGCX", "genes", "efflux resistance gene")])
+    other = entry("Other bug")
+    p, _ = score_battle(resistant, other, "Cold", 100, 100, False, False, seed=24)
+    components = {c.name: c.value for c in p.components}
+    assert components["Resistance defense"] == 5
+    assert components["Known activity"] == 0
+
+
+def test_bgc_without_combat_activity_has_only_arsenal_offense():
+    bgc_only = entry("BGC only bug", products=["quiet compound"], activities=[])
+    bgc_only.accessions = ["B1", "B2"]
+    other = entry("Other bug")
+    p, _ = score_battle(bgc_only, other, "Cold", 100, 100, True, False, seed=25)
+    components = {c.name: c.value for c in p.components}
+    assert components["BGC arsenal"] == 2
+    assert components["Known activity"] == 0
+
+
+def test_incomplete_activity_fields_do_not_crash_or_invent_scores():
+    incomplete = entry("Incomplete bug")
+    incomplete.activities = []
+    incomplete.accessions = []
+    other = entry("Other bug")
+    p, _ = score_battle(incomplete, other, "Cold", 100, 100, True, False, seed=26)
+    components = {c.name: c.value for c in p.components}
+    assert components["BGC arsenal"] == 0
+    assert components["Known activity"] == 0
+    assert components["Resistance defense"] == 0

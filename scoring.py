@@ -15,6 +15,7 @@ BASE_SCORE = 25.0
 ENV_MATCH_BONUS = 12.0
 NO_EVIDENCE_PENALTY = -3.0
 BGC_ARSENAL_BONUS = 5.0
+ACTIVITY_SCORE_CAP = 5.0
 RANDOM_VARIATION_RANGE = 2.0
 
 
@@ -23,6 +24,7 @@ class ScoreComponent:
     name: str
     value: float
     explanation: str
+    included_in_total: bool = True
 
 
 @dataclass(frozen=True)
@@ -34,7 +36,7 @@ class ScoreBreakdown:
     components: tuple[ScoreComponent, ...]
 
     def component_total(self) -> float:
-        return round(sum(c.value for c in self.components), 6)
+        return round(sum(c.value for c in self.components if c.included_in_total), 6)
 
 
 def colony_component(colony_cfu: int) -> ScoreComponent:
@@ -42,18 +44,49 @@ def colony_component(colony_cfu: int) -> ScoreComponent:
     return ScoreComponent("Colony", float(colony_score), f"{colony_cfu} CFU contributed {colony_score:+.1f} points using the shared dynamic colony formula.")
 
 
-def offensive_score(entry: BacteriumCatalogEntry) -> float:
-    # Cap the contribution so database-rich organisms do not win merely because
-    # they have many linked MIBiG records.
-    antimicrobial = 1.5 if entry.has_trait("Antimicrobial production") else 0.0
-    product_points = min(4.0, len(entry.products) * 0.5)
-    activity_points = min(3.0, len(entry.activities) * 0.5)
-    return round(min(8.0, antimicrobial + product_points + activity_points), 2)
+def bgc_arsenal_score(entry: BacteriumCatalogEntry, brings_bgc_arsenal: bool) -> tuple[float, int]:
+    if not brings_bgc_arsenal:
+        return 0.0, 0
+    active_bgc_count = len(entry.accessions)
+    return float(min(active_bgc_count, int(BGC_ARSENAL_BONUS))), active_bgc_count
+
+
+def activity_score(entry: BacteriumCatalogEntry) -> float:
+    """Score documented biological activities with one capped, simple model."""
+    activities = " ".join(entry.activities).lower()
+    score = 0.0
+    matched = False
+    if "antibacterial" in activities or "antimicrobial" in activities:
+        score += 3.0
+        matched = True
+    if "antifungal" in activities:
+        score += 2.0
+        matched = True
+    if "cytotoxic" in activities or "toxic" in activities or "toxin" in activities:
+        score += 2.0
+        matched = True
+    if "siderophore" in activities or "iron" in activities:
+        score += 2.0
+        matched = True
+    if entry.activities and not matched:
+        score += 1.0
+    return min(ACTIVITY_SCORE_CAP, score)
 
 
 def defensive_score(entry: BacteriumCatalogEntry) -> float:
-    # Resistance is separate from antimicrobial production.
-    return 5.0 if entry.has_trait("Drug resistant") else 0.0
+    """Score resistance evidence only; antimicrobial production is offense."""
+    best = 0.0
+    for evidence in entry.traits:
+        if evidence.trait != "Drug resistant":
+            continue
+        text = f"{evidence.field} {evidence.explanation}".lower()
+        if evidence.evidence_level.startswith("Direct") and ("immunity" in text or "efflux" in text or "resistan" in text):
+            best = max(best, 5.0)
+        elif "self-resistance" in text:
+            best = max(best, 4.0)
+        else:
+            best = max(best, 2.0)
+    return best
 
 
 def environment_status(entry: BacteriumCatalogEntry, environment: str) -> str:
@@ -88,14 +121,16 @@ def score_fighter(
         components.append(ScoreComponent("Environment", 0.0, f"Traits are documented, but none match the {environment} environment; no bonus was awarded."))
     else:
         components.append(ScoreComponent("Environment", 0.0, f"No supported {target.lower()} evidence was available; unknown is not treated as a confirmed mismatch."))
-    components.append(ScoreComponent("Defense", defensive_score(entry), "Resistance-related evidence contributes defensive capability only when present."))
-    components.append(ScoreComponent("Offense", offensive_score(entry), "Capped biosynthetic/product/activity evidence contributes offensive potential."))
-    active_bgc_count = len(entry.accessions) if brings_bgc_arsenal else 0
-    arsenal_score = BGC_ARSENAL_BONUS if active_bgc_count else 0.0
-    components.append(ScoreComponent("BGC arsenal", arsenal_score, f"{active_bgc_count} known MIBiG BGC(s) brought into battle."))
+    defense = defensive_score(entry)
+    components.append(ScoreComponent("Resistance defense", defense, "Resistance, immunity, or efflux evidence contributes defense; antimicrobial production alone does not."))
+    arsenal_score, active_bgc_count = bgc_arsenal_score(entry, brings_bgc_arsenal)
+    known_activity_score = activity_score(entry)
+    components.append(ScoreComponent("BGC arsenal", arsenal_score, f"{active_bgc_count} known MIBiG BGC(s) brought into battle; score is capped at 5.", False))
+    components.append(ScoreComponent("Known activity", known_activity_score, "Capped score from documented antibacterial, antifungal, cytotoxic/toxin, siderophore, or other activity.", False))
+    components.append(ScoreComponent("Offense total", arsenal_score + known_activity_score, f"Offense subtotal = BGC arsenal {arsenal_score:+.1f} + known activity {known_activity_score:+.1f}."))
     variation = round(rng.uniform(-RANDOM_VARIATION_RANGE, RANDOM_VARIATION_RANGE), 2)
     components.append(ScoreComponent("Battle variation", variation, "Small controlled random variation for close battles."))
-    total = round(sum(c.value for c in components), 2)
+    total = round(sum(c.value for c in components if c.included_in_total), 2)
     return ScoreBreakdown(entry.full_name, status, int(colony_cfu), total, tuple(components))
 
 
