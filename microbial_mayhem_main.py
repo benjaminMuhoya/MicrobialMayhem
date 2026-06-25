@@ -68,6 +68,8 @@ class GameState:
     opponent_colony_cfu: int = 0
     opponent_colony_score: float = 0.0
     opponent_has_secretion: bool = False
+    popup_message: str = ""
+    popup_until: int = 0
     environment: str | None = None
     player_score: float = 0.0
     opponent_score: float = 0.0
@@ -127,6 +129,8 @@ def reset_for_new_game(state: GameState) -> None:
     state.opponent_colony_cfu = 0
     state.opponent_colony_score = 0.0
     state.opponent_has_secretion = False
+    state.popup_message = ""
+    state.popup_until = 0
     state.environment = None
     state.player_score = state.opponent_score = 0.0
     state.player_breakdown = state.opponent_breakdown = None
@@ -264,6 +268,7 @@ class MicrobialMayhemGUI:
             self.draw_animation(dt)
         elif self.state.screen == RESULTS:
             self.draw_results()
+        self.draw_popup()
         self.draw_buttons(mouse)
 
     def draw_background(self) -> None:
@@ -439,12 +444,34 @@ class MicrobialMayhemGUI:
 
     def draw_secretion(self) -> None:
         self.panel((125, 95, 750, 510))
-        self.text("Secretion system?", self.mid, (255, 238, 133), center=(WIDTH // 2, 150))
-        msg = "Secretion systems are toxin-injection weapons bacteria can use to attack neighboring microbes. Choose whether your fighter brings one to battle."
-        self.draw_wrapped(msg, pygame.Rect(220, 210, 560, 110), self.font, (245, 250, 255))
-        self.add_button((245, 360, 210, 78), "Yes", lambda: setattr(self.state, "has_secretion", True), selected=self.state.has_secretion is True)
+        self.text("Bring your BGC arsenal?", self.mid, (255, 238, 133), center=(WIDTH // 2, 150))
+        msg = "Some bacteria carry biosynthetic gene clusters that can produce useful chemical weapons. Should your fighter bring its known arsenal into battle?"
+        self.draw_wrapped(msg, pygame.Rect(220, 210, 560, 120), self.font, (245, 250, 255))
+        self.add_button((245, 360, 210, 78), "Yes", self.choose_bgc_arsenal_yes, selected=self.state.has_secretion is True)
         self.add_button((545, 360, 210, 78), "No", lambda: setattr(self.state, "has_secretion", False), selected=self.state.has_secretion is False)
         self.add_button((390, 515, 220, 54), "Continue", lambda: self.set_screen(ENVIRONMENT_SELECTION), enabled=self.state.has_secretion is not None)
+
+    def choose_bgc_arsenal_yes(self) -> None:
+        self.state.has_secretion = True
+        if self.active_bgc_count(self.state.player_entry, True) == 0:
+            self.show_popup("Your fighter has no known BGC arsenal. Good luck—you’re fighting with the basics!")
+
+    def active_bgc_count(self, entry: BacteriumCatalogEntry, brings_arsenal: bool) -> int:
+        return len(entry.accessions) if entry and brings_arsenal else 0
+
+    def show_popup(self, message: str) -> None:
+        self.state.popup_message = message
+        self.state.popup_until = pygame.time.get_ticks() + 2800
+
+    def draw_popup(self) -> None:
+        if not self.state.popup_message or pygame.time.get_ticks() > self.state.popup_until:
+            return
+        rect = pygame.Rect(170, 40, 660, 70)
+        surf = pygame.Surface(rect.size, pygame.SRCALPHA)
+        pygame.draw.rect(surf, (12, 30, 48, 235), surf.get_rect(), border_radius=18)
+        pygame.draw.rect(surf, (255, 238, 133, 230), surf.get_rect(), 2, border_radius=18)
+        self.screen.blit(surf, rect)
+        self.draw_wrapped(self.state.popup_message, rect.inflate(-28, -20), self.small, (255, 255, 255))
 
     def draw_preview(self) -> None:
         self.panel((105, 60, 790, 600))
@@ -455,7 +482,8 @@ class MicrobialMayhemGUI:
             ("Environment", self.state.environment),
             ("Your colony", f"{self.state.colony_cfu} CFU ({self.state.colony_label}, +{self.state.colony_score:.1f})"),
             ("Opponent colony", f"{self.state.opponent_colony_cfu} CFU (+{self.state.opponent_colony_score:.1f})"),
-            ("Secretion system", "Yes" if self.state.has_secretion else "No"),
+            ("Your BGC arsenal", f"{'Yes' if self.state.has_secretion else 'No'} ({self.active_bgc_count(self.state.player_entry, bool(self.state.has_secretion))} active BGCs)"),
+            ("Opponent BGC arsenal", f"{'Yes' if self.state.opponent_has_secretion else 'No'} ({self.active_bgc_count(self.state.opponent_entry, self.state.opponent_has_secretion)} active BGCs)"),
         ]
         y = 170
         for label, value in rows:

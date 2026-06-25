@@ -235,3 +235,22 @@ def test_long_text_wrapping_stays_within_assigned_width():
 def test_colony_labels_are_dynamic():
     labels = [colony_growth_score(cfu)[1] for cfu in [0, 50, 250, 500, 750, 1000]]
     assert labels == ["Very small colony", "Small colony", "Moderate colony", "Large colony", "Very large colony", "Massive colony"]
+
+
+def test_bgc_arsenal_component_replaces_secretion_name():
+    a = entry("A bug")
+    b = entry("B bug")
+    p, _ = score_battle(a, b, "Cold", 100, 100, True, False, seed=21)
+    names = [c.name for c in p.components]
+    assert "BGC arsenal" in names
+    assert "Secretion" not in names
+
+
+def test_bgc_arsenal_no_bonus_without_known_bgcs():
+    no_bgc = entry("No bgc bug")
+    no_bgc.accessions = []
+    other = entry("Other bug")
+    p, _ = score_battle(no_bgc, other, "Cold", 100, 100, True, False, seed=22)
+    arsenal = next(c for c in p.components if c.name == "BGC arsenal")
+    assert arsenal.value == 0
+    assert "0 known MIBiG BGC" in arsenal.explanation
