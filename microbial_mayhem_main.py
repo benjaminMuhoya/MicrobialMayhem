@@ -13,7 +13,6 @@ import os
 import microbe_class
 import general_usr_in
 import Env_scoring
-import ANIME_simple
 from species_dict import spp_dict
 import random
 from microbe_info_output import output_statement 
@@ -65,7 +64,7 @@ def main():
     # microbes are set
     # get environment from env_menu function
     env = env_menu()
-    env_score = Env_scoring.calculate_score_env('env')
+    env_score = Env_scoring.calculate_score_env(env)
     # informs user of the two mircobes who are competing
     print(f'\nYour microbe is {microbe_a_species} and your opponent is {rand_b_species}. Lets battle!\n')
   # runs microbe A through all of the class methods
@@ -94,6 +93,7 @@ def main():
   if importlib.util.find_spec('pygame') is None:
     print('pygame is not installed')
   else:
+    import ANIME_simple
     ANIME_simple.Gui_pop('image')
 
 
