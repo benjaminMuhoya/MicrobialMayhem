@@ -8,20 +8,14 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+from gui_helpers import pluralize
+from taxonomy_filter import classify_organism
 from trait_inference import TraitEvidence, infer_traits
 
 REPO_ROOT = Path(__file__).resolve().parent
 MIBIG_DIR = REPO_ROOT / "mibig_json"
 
-# MIBiG records do not include lineage. These exclusions prevent common fungal,
-# plant, and animal records from being presented as bacterial fighters. The
-# design keeps this list isolated so it can be replaced by a curated taxonomy
-# table later.
-NON_BACTERIAL_GENERA = {
-    "Alternaria", "Aspergillus", "Penicillium", "Fusarium", "Acremonium", "Dendrothele",
-    "Lentinula", "Saccharomyces", "Candida", "Trichoderma", "Claviceps", "Epichloe",
-    "Arabidopsis", "Oryza", "Zea", "Homo", "Mus", "Rattus", "Drosophila", "Ciona",
-}
+CATALOG_STATS = {"included_records": 0, "excluded_records": 0, "excluded_reasons": {}}
 
 
 @dataclass(frozen=True)
@@ -47,6 +41,10 @@ class BacteriumCatalogEntry:
     traits: list[TraitEvidence] = field(default_factory=list)
     record_count: int = 0
     description: str = ""
+    taxonomy_group: str = "Bacteria"
+    taxonomy_evidence: str = ""
+    colony_appearance: str = "No curated morphology information available."
+    curious_fact: str = ""
 
     def has_trait(self, trait: str) -> bool:
         return any(e.trait == trait for e in self.traits)
@@ -75,8 +73,7 @@ def load_mibig_records(mibig_dir: Path = MIBIG_DIR) -> list[MibigRecord]:
 
 
 def is_probable_bacterium(name: str) -> bool:
-    genus = name.split()[0] if name.split() else ""
-    return bool(genus) and genus not in NON_BACTERIAL_GENERA
+    return classify_organism(name).is_bacterial
 
 
 def organism_key(name: str) -> str:
@@ -109,9 +106,17 @@ def _unique(values: list[str], limit: int | None = None) -> list[str]:
 
 def build_catalog(records: list[MibigRecord] | None = None) -> list[BacteriumCatalogEntry]:
     grouped: dict[str, list[MibigRecord]] = {}
+    CATALOG_STATS["included_records"] = 0
+    CATALOG_STATS["excluded_records"] = 0
+    CATALOG_STATS["excluded_reasons"] = {}
     for record in records or load_mibig_records():
-        if is_probable_bacterium(record.organism_name):
+        decision = classify_organism(record.organism_name, record.cluster.get("ncbi_tax_id"))
+        if decision.is_bacterial:
+            CATALOG_STATS["included_records"] += 1
             grouped.setdefault(organism_key(record.organism_name), []).append(record)
+        else:
+            CATALOG_STATS["excluded_records"] += 1
+            CATALOG_STATS["excluded_reasons"][decision.reason] = CATALOG_STATS["excluded_reasons"].get(decision.reason, 0) + 1
 
     catalog: list[BacteriumCatalogEntry] = []
     for key, group in grouped.items():
@@ -141,7 +146,10 @@ def build_catalog(records: list[MibigRecord] | None = None) -> list[BacteriumCat
             activities=_unique(acts),
             traits=_unique_traits(traits),
             record_count=len(group),
+            taxonomy_group="Bacteria",
+            taxonomy_evidence=classify_organism(full_name, group[0].cluster.get("ncbi_tax_id")).reason,
         )
+        entry.curious_fact = curious_fact(entry)
         entry.description = describe_entry(entry)
         catalog.append(entry)
     return sorted(catalog, key=lambda e: e.full_name.casefold())
@@ -157,7 +165,7 @@ def _unique_traits(traits: list[TraitEvidence]) -> list[TraitEvidence]:
 
 
 def describe_entry(entry: BacteriumCatalogEntry) -> str:
-    bits = [f"MIBiG records associate this organism with {len(entry.accessions)} biosynthetic gene-cluster record(s)."]
+    bits = [f"MIBiG records associate this organism with {pluralize(len(entry.accessions), 'known MIBiG record')}."]
     if entry.products:
         bits.append(f"Known products include {', '.join(entry.products[:4])}.")
     if entry.biosyn_classes:
@@ -169,6 +177,29 @@ def describe_entry(entry: BacteriumCatalogEntry) -> str:
     else:
         bits.append("No direct evidence was available for environmental adaptation traits in these MIBiG fields.")
     return " ".join(bits)
+
+
+def bgc_summary(entry: BacteriumCatalogEntry) -> str:
+    return f"Biosynthetic gene clusters: {pluralize(len(entry.accessions), 'known MIBiG record')} ({pluralize(len(entry.accessions), 'BGC')})."
+
+
+def curious_fact(entry: BacteriumCatalogEntry) -> str:
+    if entry.products and entry.activities:
+        return f"MIBiG associates this organism with production of {entry.products[0]}, reported as {entry.activities[0]}."
+    if entry.products:
+        return f"MIBiG associates this organism with production of {entry.products[0]}."
+    return f"MIBiG currently links this organism to {pluralize(len(entry.accessions), 'biosynthetic gene-cluster record')}."
+
+
+def catalog_stats() -> dict:
+    if not CATALOG_STATS["included_records"] and not CATALOG_STATS["excluded_records"]:
+        get_catalog()
+    return {
+        "included_records": CATALOG_STATS["included_records"],
+        "excluded_records": CATALOG_STATS["excluded_records"],
+        "excluded_reasons": dict(CATALOG_STATS["excluded_reasons"]),
+        "playable_entries": len(get_catalog()),
+    }
 
 
 @lru_cache(maxsize=1)
