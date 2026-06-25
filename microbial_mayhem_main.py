@@ -166,7 +166,7 @@ class MicrobialMayhemGUI:
         self.background = self.load_background()
 
     def load_background(self) -> pygame.Surface | None:
-        for name in ("Mayhem.png", "May.png", "lightning.jpeg"):
+        for name in ("lightning.jpeg", "Mayhem.png", "May.png"):
             path = SCRIPT_DIR / name
             if path.exists():
                 try:
@@ -183,7 +183,6 @@ class MicrobialMayhemGUI:
         while running:
             dt = self.clock.tick(FPS)
             mouse = pygame.mouse.get_pos()
-            self.buttons = []
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -222,6 +221,7 @@ class MicrobialMayhemGUI:
         self.buttons.append(Button(pygame.Rect(rect), text, action, selected, enabled, small))
 
     def draw(self, mouse, dt) -> None:
+        self.buttons = []
         self.draw_background()
         if self.state.screen == WELCOME:
             self.draw_welcome()
@@ -305,7 +305,7 @@ class MicrobialMayhemGUI:
         self.panel((135, 105, 730, 470))
         self.text("MICROBIAL MAYHEM", self.big, (146, 255, 167), center=(WIDTH // 2, 205))
         msg = "Build a tiny champion, pick an extreme arena, and battle a surprise microbial opponent in a colorful science showdown."
-        self.draw_wrapped(msg, pygame.Rect(235, 275, 530, 120), self.mid, (245, 250, 255))
+        self.draw_wrapped(msg, pygame.Rect(220, 285, 560, 145), self.font, (245, 250, 255), line_gap=8)
         self.add_button((380, 455, 240, 68), "Start Game", lambda: self.set_screen(FIGHTER_SELECTION))
 
     def draw_choice_grid(self, title, choices, attr, screen_name) -> None:
