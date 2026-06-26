@@ -296,3 +296,10 @@ def test_incomplete_activity_fields_do_not_crash_or_invent_scores():
     assert components["BGC arsenal"] == 0
     assert components["Known activity"] == 0
     assert components["Resistance defense"] == 0
+
+
+def test_offline_catalog_file_loads_without_live_requests():
+    from bacterial_catalog import get_catalog
+    catalog = get_catalog()
+    assert len(catalog) > 0
+    assert catalog[0].accessions

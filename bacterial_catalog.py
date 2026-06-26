@@ -14,8 +14,10 @@ from trait_inference import TraitEvidence, infer_traits
 
 REPO_ROOT = Path(__file__).resolve().parent
 MIBIG_DIR = REPO_ROOT / "mibig_json"
+OFFLINE_CATALOG_PATH = REPO_ROOT / "data" / "catalog" / "microbial_mayhem_catalog.json"
+BUILD_COMMAND = "python3 scripts/build_bacterial_catalog.py"
 
-CATALOG_STATS = {"included_records": 0, "excluded_records": 0, "excluded_reasons": {}}
+CATALOG_STATS = {"included_records": 0, "excluded_records": 0, "excluded_reasons": {}, "playable_entries": 0}
 
 
 @dataclass(frozen=True)
@@ -55,6 +57,34 @@ class BacteriumCatalogEntry:
             if evidence.trait not in names:
                 names.append(evidence.trait)
         return ", ".join(names[:4]) if names else "traits unknown"
+
+    def to_dict(self) -> dict:
+        return {
+            "catalog_id": self.catalog_id,
+            "full_name": self.full_name,
+            "display_name": self.display_name,
+            "genus": self.genus,
+            "species": self.species,
+            "strain": self.strain,
+            "accessions": self.accessions,
+            "biosyn_classes": self.biosyn_classes,
+            "products": self.products,
+            "compound_classes": self.compound_classes,
+            "activities": self.activities,
+            "traits": [e.__dict__ for e in self.traits],
+            "record_count": self.record_count,
+            "description": self.description,
+            "taxonomy_group": self.taxonomy_group,
+            "taxonomy_evidence": self.taxonomy_evidence,
+            "colony_appearance": self.colony_appearance,
+            "curious_fact": self.curious_fact,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "BacteriumCatalogEntry":
+        data = dict(data)
+        data["traits"] = [TraitEvidence(**trait) for trait in data.get("traits", [])]
+        return cls(**data)
 
 
 def load_mibig_records(mibig_dir: Path = MIBIG_DIR) -> list[MibigRecord]:
@@ -109,6 +139,7 @@ def build_catalog(records: list[MibigRecord] | None = None) -> list[BacteriumCat
     CATALOG_STATS["included_records"] = 0
     CATALOG_STATS["excluded_records"] = 0
     CATALOG_STATS["excluded_reasons"] = {}
+    CATALOG_STATS["playable_entries"] = 0
     for record in records or load_mibig_records():
         decision = classify_organism(record.organism_name, record.cluster.get("ncbi_tax_id"))
         if decision.is_bacterial:
@@ -152,7 +183,9 @@ def build_catalog(records: list[MibigRecord] | None = None) -> list[BacteriumCat
         entry.curious_fact = curious_fact(entry)
         entry.description = describe_entry(entry)
         catalog.append(entry)
-    return sorted(catalog, key=lambda e: e.full_name.casefold())
+    sorted_catalog = sorted(catalog, key=lambda e: e.full_name.casefold())
+    CATALOG_STATS["playable_entries"] = len(sorted_catalog)
+    return sorted_catalog
 
 
 def _unique_traits(traits: list[TraitEvidence]) -> list[TraitEvidence]:
@@ -192,19 +225,24 @@ def curious_fact(entry: BacteriumCatalogEntry) -> str:
 
 
 def catalog_stats() -> dict:
-    if not CATALOG_STATS["included_records"] and not CATALOG_STATS["excluded_records"]:
-        get_catalog()
     return {
         "included_records": CATALOG_STATS["included_records"],
         "excluded_records": CATALOG_STATS["excluded_records"],
         "excluded_reasons": dict(CATALOG_STATS["excluded_reasons"]),
-        "playable_entries": len(get_catalog()),
+        "playable_entries": CATALOG_STATS["playable_entries"],
     }
 
 
 @lru_cache(maxsize=1)
 def get_catalog() -> tuple[BacteriumCatalogEntry, ...]:
-    return tuple(build_catalog())
+    if not OFFLINE_CATALOG_PATH.exists():
+        raise FileNotFoundError(
+            f"Offline game catalog not found: {OFFLINE_CATALOG_PATH}. "
+            f"Run `{BUILD_COMMAND}` before launching Microbial Mayhem."
+        )
+    data = json.loads(OFFLINE_CATALOG_PATH.read_text())
+    entries = data.get("fighters", data if isinstance(data, list) else [])
+    return tuple(BacteriumCatalogEntry.from_dict(entry) for entry in entries)
 
 
 def search_catalog(query: str, catalog: list[BacteriumCatalogEntry] | tuple[BacteriumCatalogEntry, ...] | None = None) -> list[BacteriumCatalogEntry]:
