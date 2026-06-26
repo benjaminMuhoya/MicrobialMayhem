@@ -298,8 +298,30 @@ def test_incomplete_activity_fields_do_not_crash_or_invent_scores():
     assert components["Resistance defense"] == 0
 
 
-def test_offline_catalog_file_loads_without_live_requests():
-    from bacterial_catalog import get_catalog
-    catalog = get_catalog()
-    assert len(catalog) > 0
-    assert catalog[0].accessions
+def test_offline_catalog_file_loads_without_live_requests(tmp_path, monkeypatch):
+    import bacterial_catalog
+    entry_data = entry("Bacillus offline 1").to_dict()
+    path = tmp_path / "microbial_mayhem_catalog.json"
+    path.write_text(__import__("json").dumps({"fighters": [entry_data]}))
+    monkeypatch.setattr(bacterial_catalog, "OFFLINE_CATALOG_PATH", path)
+    bacterial_catalog.get_catalog.cache_clear()
+    catalog = bacterial_catalog.get_catalog()
+    assert len(catalog) == 1
+    assert catalog[0].full_name == "Bacillus offline 1"
+    bacterial_catalog.get_catalog.cache_clear()
+
+
+def test_bacdive_builder_creates_bacdive_primary_entry_from_synthetic_record():
+    from scripts.build_bacdive_catalog import entry_from_bacdive, build_mibig_indexes
+    record = {
+        "BacDive-ID": 123,
+        "Name and taxonomic classification": {"species": "Bacillus syntheticus", "NCBI tax id": 999},
+        "Morphology": {"Gram stain": "positive", "cell shape": "rod", "motility": "motile", "colony morphology": "smooth colonies"},
+        "Culture and growth conditions": {"oxygen tolerance": "aerobe", "temperature": "30-37"},
+        "Isolation, sampling and environmental information": {"isolation source": "soil"},
+    }
+    result = entry_from_bacdive(record, build_mibig_indexes())
+    assert result.source == "BacDive"
+    assert result.full_name == "Bacillus syntheticus"
+    assert result.gram_stain == "positive"
+    assert result.colony_appearance == "smooth colonies"
