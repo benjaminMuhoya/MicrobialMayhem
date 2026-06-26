@@ -15,7 +15,11 @@ from trait_inference import TraitEvidence, infer_traits
 REPO_ROOT = Path(__file__).resolve().parent
 MIBIG_DIR = REPO_ROOT / "mibig_json"
 OFFLINE_CATALOG_PATH = REPO_ROOT / "data" / "catalog" / "microbial_mayhem_catalog.json"
+<<<<<<< codex/resolve-merge-conflict-in-microbial_mayhem_main.py-i5z0uv
+BUILD_COMMAND = "python3 scripts/build_bacdive_catalog.py"
+=======
 BUILD_COMMAND = "python3 scripts/build_bacterial_catalog.py"
+>>>>>>> main
 
 CATALOG_STATS = {"included_records": 0, "excluded_records": 0, "excluded_reasons": {}, "playable_entries": 0}
 
