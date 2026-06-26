@@ -18,6 +18,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
@@ -43,6 +44,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--genera", nargs="*", default=sorted(BACTERIAL_GENERA), help="Bacterial genera to query from BacDive taxonomy endpoint.")
     parser.add_argument("--bacdive-json", type=Path, help="Use a local BacDive JSON export instead of downloading.")
     parser.add_argument("--sleep", type=float, default=0.05, help="Delay between API requests.")
+    parser.add_argument("--timeout", type=float, default=10.0, help="Per-request timeout in seconds.")
+    parser.add_argument("--strict", action="store_true", help="Stop at the first BacDive request failure instead of continuing with other genera.")
     return parser.parse_args()
 
 
@@ -51,10 +54,11 @@ def ensure_dirs() -> None:
     CATALOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def fetch_json(url: str, retries: int = 3) -> dict | list:
+def fetch_json(url: str, timeout: float, retries: int = 3) -> dict | list:
+    request = urllib.request.Request(url, headers={"User-Agent": "MicrobialMayhem/1.0 catalog builder"})
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(url, timeout=30) as response:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             if attempt == retries - 1:
@@ -63,32 +67,37 @@ def fetch_json(url: str, retries: int = 3) -> dict | list:
     raise RuntimeError(f"Failed to fetch {url}")
 
 
-def collect_ids_for_genus(genus: str, refresh: bool, pause: float) -> list[int]:
+def collect_ids_for_genus(genus: str, refresh: bool, pause: float, timeout: float) -> list[int]:
     cache_path = RAW_DIR / f"taxon_{genus}.json"
     if cache_path.exists() and not refresh:
-        return json.loads(cache_path.read_text()).get("results", [])
+        ids = json.loads(cache_path.read_text()).get("results", [])
+        print(f"  cached {genus}: {len(ids)} BacDive IDs", flush=True)
+        return ids
     ids: list[int] = []
     url = f"{API_ROOT}/taxon/{genus}"
     pages = []
     while url:
-        page = fetch_json(url)
+        page = fetch_json(url, timeout=timeout)
         pages.append(page)
         ids.extend(page.get("results", []))
         url = page.get("next")
         time.sleep(pause)
     cache_path.write_text(json.dumps({"genus": genus, "results": ids, "pages": pages}, indent=2))
+    print(f"  downloaded {genus}: {len(ids)} BacDive IDs", flush=True)
     return ids
 
 
-def fetch_bacdive_records(ids: list[int], refresh: bool, pause: float) -> list[dict]:
+def fetch_bacdive_records(ids: list[int], refresh: bool, pause: float, timeout: float) -> list[dict]:
     records: list[dict] = []
     for start in range(0, len(ids), 100):
         chunk = ids[start:start + 100]
         cache_path = RAW_DIR / f"fetch_{chunk[0]}_{chunk[-1]}.json"
         if cache_path.exists() and not refresh:
             payload = json.loads(cache_path.read_text())
+            print(f"  cached detail records {start + 1}-{start + len(chunk)} of {len(ids)}", flush=True)
         else:
-            payload = fetch_json(f"{API_ROOT}/fetch/{';'.join(map(str, chunk))}")
+            print(f"  downloading detail records {start + 1}-{start + len(chunk)} of {len(ids)}", flush=True)
+            payload = fetch_json(f"{API_ROOT}/fetch/{';'.join(map(str, chunk))}", timeout=timeout)
             cache_path.write_text(json.dumps(payload, indent=2))
             time.sleep(pause)
         if isinstance(payload, dict):
@@ -261,12 +270,31 @@ def load_or_download_bacdive(args: argparse.Namespace) -> list[dict]:
             return records
         return records.get("records", [])
     all_ids: list[int] = []
-    for genus in args.genera:
-        all_ids.extend(collect_ids_for_genus(genus, args.refresh, args.sleep))
+    failures: list[tuple[str, Any]] = []
+    print(f"Collecting BacDive IDs for {len(args.genera)} genera...", flush=True)
+    for index, genus in enumerate(args.genera, start=1):
+        print(f"[{index}/{len(args.genera)}] Querying BacDive taxonomy for {genus}", flush=True)
+        try:
+            all_ids.extend(collect_ids_for_genus(genus, args.refresh, args.sleep, args.timeout))
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, RuntimeError) as exc:
+            failures.append((genus, exc))
+            print(f"  warning: BacDive request failed for {genus}: {exc}", flush=True)
+            if args.strict:
+                raise
         if args.limit and len(set(all_ids)) >= args.limit:
             break
-    ids = sorted(set(all_ids))[: args.limit]
-    return fetch_bacdive_records(ids, args.refresh, args.sleep)
+    ids = sorted(set(all_ids))[: args.limit] if args.limit else sorted(set(all_ids))
+    if not ids:
+        examples = "; ".join(f"{genus}: {exc}" for genus, exc in failures[:3])
+        raise RuntimeError(
+            "No BacDive IDs were downloaded. Check network access to "
+            "https://api.bacdive.dsmz.de, try a smaller command such as "
+            "`python3 scripts/build_bacdive_catalog.py --genera Bacillus --limit 25`, "
+            "or provide a local export with `--bacdive-json`. "
+            f"Recent failures: {examples or 'none'}"
+        )
+    print(f"Fetching {len(ids)} BacDive detail records...", flush=True)
+    return fetch_bacdive_records(ids, args.refresh, args.sleep, args.timeout)
 
 
 def write_report(rows: list[dict]) -> None:
