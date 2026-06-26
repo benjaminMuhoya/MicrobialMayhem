@@ -154,12 +154,18 @@ class MicrobialMayhemGUI:
         self.mid = pygame.font.Font(None, 42)
         self.small = pygame.font.Font(None, 24)
         self.state = GameState()
-        self.catalog = list(get_catalog())
-        self.refresh_catalog_choices()
+        self.catalog_error = ""
+        try:
+            self.catalog = list(get_catalog())
+        except FileNotFoundError as exc:
+            self.catalog = []
+            self.catalog_error = str(exc)
         self.buttons: list[Button] = []
         self.slider_rect = pygame.Rect(230, 340, 540, 12)
         self.dragging_slider = False
         self.background = self.load_background()
+        if self.catalog:
+            self.refresh_catalog_choices()
 
     def load_background(self) -> pygame.Surface | None:
         for name in ("lightning.jpeg", "Mayhem.png", "May.png"):
@@ -321,7 +327,9 @@ class MicrobialMayhemGUI:
         self.text("MICROBIAL MAYHEM", self.big, (146, 255, 167), center=(WIDTH // 2, 205))
         msg = "Build a tiny champion, pick an extreme arena, and battle a surprise microbial opponent in a colorful science showdown."
         self.draw_wrapped(msg, pygame.Rect(220, 285, 560, 145), self.font, (245, 250, 255), line_gap=8)
-        self.add_button((380, 455, 240, 68), "Start Game", lambda: self.set_screen(FIGHTER_SELECTION))
+        if self.catalog_error:
+            self.draw_wrapped(self.catalog_error, pygame.Rect(220, 390, 560, 80), self.small, (255, 238, 133))
+        self.add_button((380, 485, 240, 68), "Start Game", lambda: self.set_screen(FIGHTER_SELECTION), enabled=not self.catalog_error)
 
     def draw_fighter_selection(self) -> None:
         self.panel((35, 35, 930, 650))
