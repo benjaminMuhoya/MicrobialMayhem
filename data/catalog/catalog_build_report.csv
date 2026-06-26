@@ -1,0 +1,7 @@
+key,value
+built_at,2026-06-25T23:41:03.117476+00:00
+mibig_record_count,2502
+playable_fighter_count,955
+excluded_record_count,908
+bacdive_status,no BacDive API credentials/export supplied; MIBiG-only catalog built offline
+bacdive_cached_record_count,0
