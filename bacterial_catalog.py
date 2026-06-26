@@ -47,6 +47,21 @@ class BacteriumCatalogEntry:
     taxonomy_evidence: str = ""
     colony_appearance: str = "No curated morphology information available."
     curious_fact: str = ""
+    source: str = "BacDive"
+    bacdive_id: str = ""
+    ncbi_tax_id: str = ""
+    gram_stain: str = "Unknown"
+    cell_shape: str = "Unknown"
+    motility: str = "Unknown"
+    oxygen_requirements: str = "Unknown"
+    temperature_range: str = "Unknown"
+    ph_range: str = "Unknown"
+    salinity_range: str = "Unknown"
+    metabolism: str = "Unknown"
+    isolation_habitat: str = "Unknown"
+    host: str = "Unknown"
+    biosafety: str = "Unknown"
+    bgc_match_confidence: str = "unmatched"
 
     def has_trait(self, trait: str) -> bool:
         return any(e.trait == trait for e in self.traits)
@@ -78,13 +93,29 @@ class BacteriumCatalogEntry:
             "taxonomy_evidence": self.taxonomy_evidence,
             "colony_appearance": self.colony_appearance,
             "curious_fact": self.curious_fact,
+            "source": self.source,
+            "bacdive_id": self.bacdive_id,
+            "ncbi_tax_id": self.ncbi_tax_id,
+            "gram_stain": self.gram_stain,
+            "cell_shape": self.cell_shape,
+            "motility": self.motility,
+            "oxygen_requirements": self.oxygen_requirements,
+            "temperature_range": self.temperature_range,
+            "ph_range": self.ph_range,
+            "salinity_range": self.salinity_range,
+            "metabolism": self.metabolism,
+            "isolation_habitat": self.isolation_habitat,
+            "host": self.host,
+            "biosafety": self.biosafety,
+            "bgc_match_confidence": self.bgc_match_confidence,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "BacteriumCatalogEntry":
         data = dict(data)
         data["traits"] = [TraitEvidence(**trait) for trait in data.get("traits", [])]
-        return cls(**data)
+        allowed = cls.__dataclass_fields__
+        return cls(**{key: value for key, value in data.items() if key in allowed})
 
 
 def load_mibig_records(mibig_dir: Path = MIBIG_DIR) -> list[MibigRecord]:
