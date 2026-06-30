@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a BacDive-primary offline catalog for Microbial Mayhem.
 
-The game loads only data/catalog/microbial_mayhem_catalog.json at runtime.
+The game loads only data/catalog/microbial_mayhem_catalog.sqlite3 at runtime.
 This script downloads BacDive strain records when network access is available,
 caches raw responses, extracts BacDive phenotype fields, then enriches matching
 strains with local MIBiG BGC information.
@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import http.client
 import json
+import random
 import time
 import urllib.error
 import urllib.request
@@ -24,6 +26,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from bacterial_catalog import BacteriumCatalogEntry, describe_entry, load_mibig_records, parse_name
+from catalog_deduplication import deduplicate_fighters
+from catalog_storage import write_catalog_database
 from taxonomy_filter import BACTERIAL_GENERA
 from trait_inference import infer_traits
 
@@ -32,7 +36,7 @@ DATA_DIR = REPO_ROOT / "data"
 RAW_DIR = DATA_DIR / "bacdive" / "raw"
 BACDIVE_RECORDS = DATA_DIR / "bacdive" / "bacdive_records.json"
 CATALOG_DIR = DATA_DIR / "catalog"
-CATALOG_PATH = CATALOG_DIR / "microbial_mayhem_catalog.json"
+CATALOG_PATH = CATALOG_DIR / "microbial_mayhem_catalog.sqlite3"
 REPORT_PATH = CATALOG_DIR / "catalog_build_report.csv"
 UNKNOWN = "Unknown"
 
@@ -45,6 +49,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bacdive-json", type=Path, help="Use a local BacDive JSON export instead of downloading.")
     parser.add_argument("--sleep", type=float, default=0.05, help="Delay between API requests.")
     parser.add_argument("--timeout", type=float, default=10.0, help="Per-request timeout in seconds.")
+    parser.add_argument("--retries", type=int, default=12, help="Attempts per request before leaving it for the next resumable run.")
     parser.add_argument("--strict", action="store_true", help="Stop at the first BacDive request failure instead of continuing with other genera.")
     return parser.parse_args()
 
@@ -60,11 +65,57 @@ def fetch_json(url: str, timeout: float, retries: int = 3) -> dict | list:
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            ConnectionError,
+            http.client.HTTPException,
+            json.JSONDecodeError,
+        ) as exc:
             if attempt == retries - 1:
                 raise
-            time.sleep(1 + attempt)
+            delay = min(30.0, 1.5 * (2 ** attempt)) + random.uniform(0, 0.5)
+            print(
+                f"  transient download error ({type(exc).__name__}); "
+                f"retrying in {delay:.1f}s [{attempt + 2}/{retries}]",
+                flush=True,
+            )
+            time.sleep(delay)
     raise RuntimeError(f"Failed to fetch {url}")
+
+
+def payload_records(payload: dict | list) -> list[dict]:
+    """Return detail records from either BacDive response representation."""
+    if isinstance(payload, list):
+        return [record for record in payload if isinstance(record, dict)]
+    if not isinstance(payload, dict):
+        return []
+    results = payload.get("results", payload)
+    if isinstance(results, dict):
+        return [record for record in results.values() if isinstance(record, dict)]
+    if isinstance(results, list):
+        return [record for record in results if isinstance(record, dict)]
+    return []
+
+
+def payload_ids(payload: dict | list) -> set[int]:
+    """Extract returned BacDive IDs without relying on record field spelling."""
+    if isinstance(payload, dict) and isinstance(payload.get("results"), dict):
+        return {int(value) for value in payload["results"] if str(value).isdigit()}
+    found: set[int] = set()
+    for record in payload_records(payload):
+        general = record.get("General", {})
+        value = general.get("BacDive-ID", record.get("BacDive-ID")) if isinstance(general, dict) else record.get("BacDive-ID")
+        if str(value).isdigit():
+            found.add(int(value))
+    return found
+
+
+def write_json_atomic(path: Path, payload: dict | list) -> None:
+    """Avoid treating a process-interrupted cache write as a valid download."""
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(payload, indent=2))
+    temporary.replace(path)
 
 
 def collect_ids_for_genus(genus: str, refresh: bool, pause: float, timeout: float) -> list[int]:
@@ -87,23 +138,78 @@ def collect_ids_for_genus(genus: str, refresh: bool, pause: float, timeout: floa
     return ids
 
 
-def fetch_bacdive_records(ids: list[int], refresh: bool, pause: float, timeout: float) -> list[dict]:
+def fetch_bacdive_records(
+    ids: list[int], refresh: bool, pause: float, timeout: float, retries: int = 12
+) -> list[dict]:
     records: list[dict] = []
-    for start in range(0, len(ids), 100):
-        chunk = ids[start:start + 100]
+    failed_ids: list[int] = []
+    chunk_size = 20
+
+    for start in range(0, len(ids), chunk_size):
+        chunk = ids[start:start + chunk_size]
         cache_path = RAW_DIR / f"fetch_{chunk[0]}_{chunk[-1]}.json"
+        payload = None
         if cache_path.exists() and not refresh:
-            payload = json.loads(cache_path.read_text())
-            print(f"  cached detail records {start + 1}-{start + len(chunk)} of {len(ids)}", flush=True)
-        else:
-            print(f"  downloading detail records {start + 1}-{start + len(chunk)} of {len(ids)}", flush=True)
-            payload = fetch_json(f"{API_ROOT}/fetch/{';'.join(map(str, chunk))}", timeout=timeout)
-            cache_path.write_text(json.dumps(payload, indent=2))
-            time.sleep(pause)
-        if isinstance(payload, dict):
-            records.extend(payload.values() if all(str(k).isdigit() for k in payload) else payload.get("results", []))
-        elif isinstance(payload, list):
-            records.extend(payload)
+            try:
+                cached_payload = json.loads(cache_path.read_text())
+                if set(chunk).issubset(payload_ids(cached_payload)):
+                    payload = cached_payload
+                    print(f"  cached detail records {start + 1}-{start + len(chunk)} of {len(ids)}", flush=True)
+                else:
+                    print(f"  incomplete cache for records {start + 1}-{start + len(chunk)}; downloading again", flush=True)
+            except (OSError, json.JSONDecodeError):
+                print(f"  unreadable cache for records {start + 1}-{start + len(chunk)}; downloading again", flush=True)
+
+        if payload is None:
+            print(
+                f"  downloading detail records {start + 1}-"
+                f"{start + len(chunk)} of {len(ids)}",
+                flush=True,
+            )
+
+            chunk_failed_ids = list(chunk)
+            try:
+                payload = fetch_json(
+                    f"{API_ROOT}/fetch/{';'.join(map(str, chunk))}",
+                    timeout=timeout,
+                    retries=retries,
+                )
+                missing = set(chunk) - payload_ids(payload)
+                if missing:
+                    chunk_failed_ids = sorted(missing)
+                    raise RuntimeError(f"BacDive response omitted {len(missing)} requested ID(s): {sorted(missing)}")
+                write_json_atomic(cache_path, payload)
+                time.sleep(pause)
+
+            except (
+                urllib.error.URLError,
+                TimeoutError,
+                ConnectionError,
+                http.client.HTTPException,
+                json.JSONDecodeError,
+                RuntimeError,
+            ) as exc:
+                print(
+                    f"  warning: failed detail records "
+                    f"{start + 1}-{start + len(chunk)}: {exc}",
+                    flush=True,
+                )
+                failed_ids.extend(chunk_failed_ids)
+                continue
+        records.extend(payload_records(payload))
+
+    if failed_ids:
+        failure_path = RAW_DIR / "failed_detail_ids.json"
+        write_json_atomic(failure_path, {"ids": failed_ids, "count": len(failed_ids)})
+        failure_label = failure_path.relative_to(REPO_ROOT) if failure_path.is_relative_to(REPO_ROOT) else failure_path
+        raise RuntimeError(
+            f"BacDive download is incomplete: {len(failed_ids)} of {len(ids)} detail records "
+            f"still need downloading. Progress is safely cached; rerun the same command to resume. "
+            f"Missing IDs were written to {failure_label}."
+        )
+
+    failure_path = RAW_DIR / "failed_detail_ids.json"
+    failure_path.unlink(missing_ok=True)
     return records
 
 
@@ -294,7 +400,7 @@ def load_or_download_bacdive(args: argparse.Namespace) -> list[dict]:
             f"Recent failures: {examples or 'none'}"
         )
     print(f"Fetching {len(ids)} BacDive detail records...", flush=True)
-    return fetch_bacdive_records(ids, args.refresh, args.sleep, args.timeout)
+    return fetch_bacdive_records(ids, args.refresh, args.sleep, args.timeout, args.retries)
 
 
 def write_report(rows: list[dict]) -> None:
@@ -311,19 +417,21 @@ def main() -> None:
     indexes = build_mibig_indexes()
     fighters = [entry_from_bacdive(record, indexes) for record in records]
     fighters = [fighter for fighter in fighters if fighter.full_name and fighter.bacdive_id]
+    fighter_dicts, duplicates_removed = deduplicate_fighters([fighter.to_dict() for fighter in fighters])
     metadata = {
         "built_at": datetime.now(timezone.utc).isoformat(),
         "source": "BacDive primary; MIBiG BGC enrichment only",
         "bacdive_record_count": len(records),
-        "playable_fighter_count": len(fighters),
-        "mibig_exact_ncbi_matches": sum(1 for f in fighters if f.bgc_match_confidence == "exact_ncbi_tax_id"),
-        "mibig_exact_name_matches": sum(1 for f in fighters if f.bgc_match_confidence == "exact_scientific_name"),
-        "mibig_species_fallback_matches": sum(1 for f in fighters if f.bgc_match_confidence == "species_fallback"),
-        "mibig_unmatched": sum(1 for f in fighters if f.bgc_match_confidence == "unmatched"),
+        "playable_fighter_count": len(fighter_dicts),
+        "duplicate_fighters_removed": duplicates_removed,
+        "mibig_exact_ncbi_matches": sum(1 for f in fighter_dicts if f.get("bgc_match_confidence") == "exact_ncbi_tax_id"),
+        "mibig_exact_name_matches": sum(1 for f in fighter_dicts if f.get("bgc_match_confidence") == "exact_scientific_name"),
+        "mibig_species_fallback_matches": sum(1 for f in fighter_dicts if f.get("bgc_match_confidence") == "species_fallback"),
+        "mibig_unmatched": sum(1 for f in fighter_dicts if f.get("bgc_match_confidence") == "unmatched"),
     }
-    CATALOG_PATH.write_text(json.dumps({"metadata": metadata, "fighters": [f.to_dict() for f in fighters]}, indent=2, sort_keys=True))
+    metadata = write_catalog_database(CATALOG_PATH, fighter_dicts, metadata)
     write_report([{"key": k, "value": v} for k, v in metadata.items()])
-    print(f"Wrote {CATALOG_PATH.relative_to(REPO_ROOT)} with {len(fighters)} BacDive-derived fighters.")
+    print(f"Wrote {CATALOG_PATH.relative_to(REPO_ROOT)} with {len(fighter_dicts)} unique BacDive-derived fighters.")
 
 
 if __name__ == "__main__":

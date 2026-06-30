@@ -32,3 +32,23 @@ and follow the prompts to choose your strain and its attributes!
 
 May the best bug win!
 
+## Rebuild the fighter catalog
+
+The game reads the normalized runtime database at
+`data/catalog/microbial_mayhem_catalog.sqlite3`.
+
+To migrate an existing generated JSON catalog:
+
+```bash
+python3 scripts/migrate_catalog_to_sqlite.py
+```
+
+To rebuild from a retained BacDive export with local MIBiG enrichment:
+
+```bash
+python3 scripts/build_bacdive_catalog.py \
+  --bacdive-json data/bacdive/bacdive_records.json
+```
+
+The large BacDive export, legacy generated JSON catalog, and raw API cache are
+local rebuild inputs and are intentionally ignored by Git.

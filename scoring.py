@@ -113,7 +113,9 @@ def score_fighter(
     target = ADAPTATION_TRAITS.get(environment, "environmental adaptation")
     components: list[ScoreComponent] = [ScoreComponent("Base", BASE_SCORE, "Every fighter starts from the same neutral base score.")]
     components.append(colony_component(colony_cfu))
-    if status == MATCHED:
+    if environment == "Neutral":
+        components.append(ScoreComponent("Environment", 0.0, "The neutral environment does not change either fighter's score."))
+    elif status == MATCHED:
         components.append(ScoreComponent("Environment", ENV_MATCH_BONUS, f"Supported {target.lower()} evidence matches the {environment} environment."))
     elif neither_has_match:
         components.append(ScoreComponent("Environment", NO_EVIDENCE_PENALTY, f"No supported {target.lower()} match was found; uncertainty applies a modest shared penalty."))

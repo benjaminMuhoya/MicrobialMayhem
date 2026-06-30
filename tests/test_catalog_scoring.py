@@ -144,7 +144,7 @@ def test_missing_optional_mibig_fields_do_not_crash_catalog():
 
 from bacterial_catalog import bgc_summary, catalog_stats
 from colony_scoring import colony_growth_score, colony_score_from_cfu, generate_opponent_cfu
-from environment_icons import ENVIRONMENT_ICONS
+from environment_icons import ENVIRONMENT_LABELS
 from gui_helpers import pluralize, wrap_text
 from taxonomy_filter import classify_organism
 
@@ -220,9 +220,24 @@ def test_unknown_colony_morphology_has_safe_fallback():
     assert cat[0].colony_appearance == "No curated morphology information available."
 
 
-def test_environment_icons_and_labels_map_correctly():
-    assert set(ENVIRONMENT_ICONS) == {"Salty", "Alkaline", "Hot", "Cold", "Acidic", "In the presence of antibiotics"}
-    assert all(ENVIRONMENT_ICONS.values())
+def test_environment_button_labels_are_clean_and_not_repeated():
+    assert ENVIRONMENT_LABELS == {
+        "Neutral": "Neutral",
+        "Salty": "Salty",
+        "Alkaline": "Alkaline",
+        "Hot": "Hot",
+        "Cold": "Cold",
+        "Acidic": "Acidic",
+        "In the presence of antibiotics": "Antibiotics Present",
+    }
+
+
+def test_neutral_environment_has_no_environment_score_effect():
+    adapted = entry("Adapted bug", [trait("Cryophile")])
+    other = entry("Other bug")
+    player, opponent = score_battle(adapted, other, "Neutral", 100, 100, False, False, seed=31)
+    assert env_component(player).value == 0
+    assert env_component(opponent).value == 0
 
 
 def test_long_text_wrapping_stays_within_assigned_width():
@@ -300,9 +315,10 @@ def test_incomplete_activity_fields_do_not_crash_or_invent_scores():
 
 def test_offline_catalog_file_loads_without_live_requests(tmp_path, monkeypatch):
     import bacterial_catalog
+    from catalog_storage import write_catalog_database
     entry_data = entry("Bacillus offline 1").to_dict()
-    path = tmp_path / "microbial_mayhem_catalog.json"
-    path.write_text(__import__("json").dumps({"fighters": [entry_data]}))
+    path = tmp_path / "microbial_mayhem_catalog.sqlite3"
+    write_catalog_database(path, [entry_data])
     monkeypatch.setattr(bacterial_catalog, "OFFLINE_CATALOG_PATH", path)
     bacterial_catalog.get_catalog.cache_clear()
     catalog = bacterial_catalog.get_catalog()
@@ -325,3 +341,54 @@ def test_bacdive_builder_creates_bacdive_primary_entry_from_synthetic_record():
     assert result.full_name == "Bacillus syntheticus"
     assert result.gram_stain == "positive"
     assert result.colony_appearance == "smooth colonies"
+
+
+def test_bacdive_fetch_retries_dropped_chunked_response(monkeypatch):
+    import http.client
+    from scripts import build_bacdive_catalog
+
+    class Response:
+        def __init__(self, content=None, error=None):
+            self.content = content
+            self.error = error
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            if self.error:
+                raise self.error
+            return self.content
+
+    responses = iter([
+        Response(error=http.client.IncompleteRead(b"partial")),
+        Response(content=b'{"results": {}}'),
+    ])
+    monkeypatch.setattr(build_bacdive_catalog.urllib.request, "urlopen", lambda *args, **kwargs: next(responses))
+    monkeypatch.setattr(build_bacdive_catalog.time, "sleep", lambda _: None)
+
+    assert build_bacdive_catalog.fetch_json("https://example.test", timeout=1, retries=2) == {"results": {}}
+
+
+def test_bacdive_fetch_refuses_to_finish_with_missing_records(tmp_path, monkeypatch):
+    from scripts import build_bacdive_catalog
+
+    monkeypatch.setattr(build_bacdive_catalog, "RAW_DIR", tmp_path)
+    monkeypatch.setattr(
+        build_bacdive_catalog,
+        "fetch_json",
+        lambda *args, **kwargs: {"count": 1, "results": {"1": {"General": {"BacDive-ID": 1}}}},
+    )
+
+    try:
+        build_bacdive_catalog.fetch_bacdive_records([1, 2], False, 0, 1, retries=1)
+    except RuntimeError as exc:
+        assert "download is incomplete" in str(exc)
+    else:
+        raise AssertionError("Incomplete BacDive response should stop the catalog build")
+
+    failure = __import__("json").loads((tmp_path / "failed_detail_ids.json").read_text())
+    assert failure == {"count": 1, "ids": [2]}

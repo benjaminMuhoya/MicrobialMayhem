@@ -1,7 +1,10 @@
 key,value
-built_at,2026-06-25T23:41:03.117476+00:00
-mibig_record_count,2502
-playable_fighter_count,955
-excluded_record_count,908
-bacdive_status,no BacDive API credentials/export supplied; MIBiG-only catalog built offline
-bacdive_cached_record_count,0
+bacdive_record_count,59489
+built_at,2026-06-30T17:04:18.069969+00:00
+duplicate_fighters_removed,11747
+mibig_exact_name_matches,0
+mibig_exact_ncbi_matches,31016
+mibig_species_fallback_matches,0
+mibig_unmatched,16726
+playable_fighter_count,47742
+source,BacDive primary; MIBiG BGC enrichment only

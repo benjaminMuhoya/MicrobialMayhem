@@ -32,5 +32,5 @@ def calculate_score_env(env):
     calculate_score_env()
 ##End of Class
 ##Total_object = calculate_score_env('env')
-##print('Extreme ENV is penalized -10, superpower gives you +100, otherwise 0 if nothing is selected then 0 is assigned, so, ===>>>>', Total_object, 'LETS BATTLE??')
+##print('Extreme ENV is penalized -10, superpower gives you +100, otherwise 0 if nothing is selected then 0 is assigned, so, ===>>>>', Total_object, 'LETS BATTLE??
 ##Does the class work here?

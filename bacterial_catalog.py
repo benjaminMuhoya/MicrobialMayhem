@@ -8,19 +8,15 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+from catalog_storage import load_catalog_database
 from gui_helpers import pluralize
 from taxonomy_filter import classify_organism
 from trait_inference import TraitEvidence, infer_traits
 
 REPO_ROOT = Path(__file__).resolve().parent
 MIBIG_DIR = REPO_ROOT / "mibig_json"
-OFFLINE_CATALOG_PATH = REPO_ROOT / "data" / "catalog" / "microbial_mayhem_catalog.json"
-<<<<<<< codex/resolve-merge-conflict-in-microbial_mayhem_main.py-i5z0uv
+OFFLINE_CATALOG_PATH = REPO_ROOT / "data" / "catalog" / "microbial_mayhem_catalog.sqlite3"
 BUILD_COMMAND = "python3 scripts/build_bacdive_catalog.py"
-=======
-BUILD_COMMAND = "python3 scripts/build_bacterial_catalog.py"
->>>>>>> main
-
 CATALOG_STATS = {"included_records": 0, "excluded_records": 0, "excluded_reasons": {}, "playable_entries": 0}
 
 
@@ -51,7 +47,7 @@ class BacteriumCatalogEntry:
     taxonomy_evidence: str = ""
     colony_appearance: str = "No curated morphology information available."
     curious_fact: str = ""
-    source: str = "BacDive"
+    source: str = "MIBiG"
     bacdive_id: str = ""
     ncbi_tax_id: str = ""
     gram_stain: str = "Unknown"
@@ -275,8 +271,7 @@ def get_catalog() -> tuple[BacteriumCatalogEntry, ...]:
             f"Offline game catalog not found: {OFFLINE_CATALOG_PATH}. "
             f"Run `{BUILD_COMMAND}` before launching Microbial Mayhem."
         )
-    data = json.loads(OFFLINE_CATALOG_PATH.read_text())
-    entries = data.get("fighters", data if isinstance(data, list) else [])
+    entries, _metadata = load_catalog_database(OFFLINE_CATALOG_PATH)
     return tuple(BacteriumCatalogEntry.from_dict(entry) for entry in entries)
 
 

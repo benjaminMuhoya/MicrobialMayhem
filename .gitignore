@@ -1,0 +1,9 @@
+.DS_Store
+**/.DS_Store
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+*.py[cod]
+data/bacdive/raw/
+data/bacdive/bacdive_records.json
+data/catalog/microbial_mayhem_catalog.json
