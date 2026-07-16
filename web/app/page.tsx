@@ -9,6 +9,7 @@ import { PythonRandom } from "./game/python-random";
 import { fighterVisualProfile } from "./game/visual-profile";
 import { DEFAULT_PREFERENCES, normalizePreferences, type GamePreferences } from "./game/preferences";
 import { classifyViewport, type ViewportClass } from "./game/viewport";
+import { gameFeedback } from "./game/feedback";
 import { loadPreference, savePreference } from "./components/PwaRuntime";
 
 type Screen = "home" | "fighter" | "colony" | "arsenal" | "environment" | "preview" | "arena" | "results" | "settings" | "how" | "lab";
@@ -56,15 +57,16 @@ function Home({ start, mode, setMode, open, introSeen, skipIntro }: { start: () 
         <h1><small>A MICROSCOPIC BATTLE TO SURVIVE</small>Microscopic Gladiators<br/><span>Meet in the Petri Dish</span></h1>
         <p className="lede">Build a living colony, choose the arena, and discover which bacterium is biologically prepared to thrive.</p>
         <div className="mode-picker" aria-label="Choose game mode">
-          <button className={`mode-card ${mode==="1_player"?"is-selected":""}`} onClick={()=>setMode("1_player")}><span>01</span><b>One player</b><small>Face a database rival</small></button>
-          <button className={`mode-card ${mode==="2_players"?"is-selected":""}`} onClick={()=>setMode("2_players")}><span>02</span><b>Two players</b><small>Pass-and-play locally</small></button>
+          <button className={`mode-card ${mode==="1_player"?"is-selected":""}`} onClick={()=>{gameFeedback.cue("select");setMode("1_player")}}><span>01</span><b>One player</b><small>Face a database rival</small></button>
+          <button className={`mode-card ${mode==="2_players"?"is-selected":""}`} onClick={()=>{gameFeedback.cue("select");setMode("2_players")}}><span>02</span><b>Two players</b><small>Pass-and-play locally</small></button>
         </div>
         <button className="primary-action" onClick={start}>Enter the culture <span>→</span></button>
         <nav className="home-utilities" aria-label="Explore Microbial Mayhem"><button onClick={()=>open("lab")}><span>◉</span><b>Microbe Lab</b><small>Explore all 384 fighters</small></button><button onClick={()=>open("how")}><span>?</span><b>How to Play</b><small>Learn through one quick match</small></button><button onClick={()=>open("settings")}><span>✦</span><b>Settings</b><small>Sound, motion and comfort</small></button></nav>
       </div>
       <div className="hero-dish" aria-label="Animated microscopic bacterial colony">
-        <div className="dish-orbit dish-orbit--one" /><div className="dish-orbit dish-orbit--two" />
-        <Microbe tone="coral" shape="rod" /><Microbe tone="mint" shape="coccus" compact />
+        <div className="microscope-focus" /><div className="dish-orbit dish-orbit--one" /><div className="dish-orbit dish-orbit--two" />
+        <div className="intro-colony intro-colony--left">{Array.from({length:12},(_,i)=><i key={i}/>)}</div><div className="intro-colony intro-colony--right">{Array.from({length:12},(_,i)=><i key={i}/>)}</div>
+        <div className="intro-fighter intro-fighter--left"><Microbe tone="coral" shape="rod" /></div><div className="intro-fighter intro-fighter--right"><Microbe tone="mint" shape="coccus" compact /></div>
         <div className="specimen-tag"><span>LIVE SPECIMEN</span><b>Culture #MM-042</b></div>
       </div>
     </section>
@@ -87,12 +89,13 @@ function FighterScreen({ fighters, roster, selected, locked, activePlayer, loadi
   return (
     <section className="scene explorer" data-testid="screen-fighter">
       <div className="screen-heading"><div><p className="eyebrow">Player {activePlayer} · specimen selection</p><h2>{activePlayer===2?"Choose a different rival":"Choose your organism"}</h2></div><p>Recorded biology drives the battle.<br/>Procedural styling gives it personality.</p></div>
+      {activePlayer===2&&locked&&<aside className="locked-player" aria-label={`Player 1 selected ${locked.fullName}`}><span>Player 1 locked</span><Microbe fighter={locked} compact/><b><i>{locked.fullName}</i></b><small>{locked.cellShape} · {locked.motility}</small></aside>}
       <div className="explorer-grid">
         <aside className="roster-panel">
           <label className="search"><span>⌕</span><input aria-label="Search bacterial fighters" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search genus, species, strain, ID" /></label>
           <p className="search-status" role="status">{loading?"Loading production catalog…":query.trim()?matches.length?`Found ${matches.length} match(es) for '${query}'.`:`The database went quiet on '${query}'. Try another genus, species, or strain.`:`Showing ${roster.length} random database-derived bacteria.`}</p>
           <div className="roster-list">
-            {shown.slice(0,30).map((item) => {const unavailable=activePlayer===2&&locked?.catalogId===item.catalogId; return <button key={item.catalogId} disabled={unavailable} aria-disabled={unavailable} onClick={() => onSelect(item)} className={selected?.catalogId===item.catalogId?"is-selected":unavailable?"is-locked":""}>
+            {shown.slice(0,30).map((item) => {const unavailable=activePlayer===2&&locked?.catalogId===item.catalogId; return <button key={item.catalogId} disabled={unavailable} aria-disabled={unavailable} onClick={() => {gameFeedback.cue("select");onSelect(item)}} className={selected?.catalogId===item.catalogId?"is-selected":unavailable?"is-locked":""}>
               <Microbe fighter={item} compact /><span><i>{item.fullName}</i><small>{item.strain||"Strain not recorded"} · {item.accessions.length} BGCs{unavailable?" · Player 1 locked":""}</small></span><b>{unavailable?"Locked":"→"}</b>
             </button>})}
           </div>
@@ -125,7 +128,7 @@ function Colony({ onConfirm, cfu, setCfu, mode, setupPlayer }: { onConfirm: () =
         </div><span className="dish-label">Live colony · density preview</span>
       </div>
       <div className="colony-controls"><p className="eyebrow">Colony size</p><div className="cfu-readout"><b>{cfu.toLocaleString()}</b><span>CFU</span></div><p className="colony-name">{cfu < 200 ? "A nimble micro-colony" : cfu < 650 ? "A lively, balanced culture" : "A densely packed population"}</p>
-        <div className="colony-stages" aria-label="Colony growth stages"><button className={cfu===150?"is-selected":""} onClick={()=>setCfu(150)}><b>Small</b><small>150 CFU</small></button><button className={cfu===500?"is-selected":""} onClick={()=>setCfu(500)}><b>Medium</b><small>500 CFU</small></button><button className={cfu===900?"is-selected":""} onClick={()=>setCfu(900)}><b>Large</b><small>900 CFU</small></button></div>
+        <div className="colony-stages" aria-label="Colony growth stages">{[["Small",150],["Medium",500],["Large",900]].map(([label,value])=><button key={label} className={cfu===value?"is-selected":""} onClick={()=>{gameFeedback.cue("select");setCfu(Number(value))}}><b>{label}</b><small>{value} CFU</small></button>)}</div>
         <input aria-label="Colony forming units" type="range" min="0" max="1000" step="10" value={cfu} onChange={(event) => setCfu(Number(event.target.value))}/>
         <div className="range-labels"><span>0</span><span>1,000</span></div>
         <div className="score-contribution"><span>Battle contribution</span><b>+{score.toFixed(1)}</b><small>of 10 points</small></div>
@@ -142,7 +145,7 @@ function Arsenal({onConfirm,active,setActive,fighter,mode,setupPlayer}:{onConfir
 const environments:Environment[]=["Neutral","Salty","Alkaline","Hot","Cold","Acidic","In the presence of antibiotics"];
 function EnvironmentScreen({go,value,setValue,mode,previewFor}:{go:(screen:Screen)=>void;value:Environment;setValue:(value:Environment)=>void;mode:GameMode;previewFor:(environment:Environment)=>BattleResult}){
  const modifier=(env:Environment,side:"player"|"opponent")=>previewFor(env)[side].components.find(c=>c.name==="Environment")?.value||0; const selected=previewFor(value);
- return <section className={`scene environment-scene env-${value.replaceAll(" ","-").toLowerCase()}`} data-testid="screen-environment"><div className="screen-heading"><div><p className="eyebrow">Shared arena · habitat pressure</p><h2>Choose the living arena</h2></div><p>Actual modifiers are shown before confirmation.</p></div><div className="environment-grid">{environments.map(env=>{const p=modifier(env,"player"),o=modifier(env,"opponent");return <button key={env} onClick={()=>setValue(env)} className={`${value===env?"is-selected":""} motif-${env.replaceAll(" ","-").toLowerCase()}`}><i/><b>{env==="In the presence of antibiotics"?"Antibiotics":env}</b><small>Player 1 {p>=0?"+":""}{p} · {mode==="2_players"?"Player 2":"Rival"} {o>=0?"+":""}{o}</small></button>})}</div><div className="environment-confirm"><p><span>Selected habitat</span><b>{value}</b><small>{selected.player.components.find(c=>c.name==="Environment")?.explanation} {mode==="2_players"?"Player 2":"Automated Rival"}: {selected.opponent.components.find(c=>c.name==="Environment")?.explanation}</small></p><button className="primary-action" onClick={()=>go("preview")}>Enter this habitat <span>→</span></button></div></section>
+ return <section className={`scene environment-scene env-${value.replaceAll(" ","-").toLowerCase()}`} data-testid="screen-environment"><div className="environment-preview" aria-hidden="true"><i/><i/><i/></div><div className="screen-heading"><div><p className="eyebrow">Shared arena · habitat pressure</p><h2>Choose the living arena</h2></div><p>Actual modifiers are shown before confirmation.</p></div><div className="environment-grid">{environments.map(env=>{const p=modifier(env,"player"),o=modifier(env,"opponent");return <button key={env} aria-pressed={value===env} onClick={()=>{gameFeedback.cue(env==="In the presence of antibiotics"?"ability":"clash","medium");setValue(env)}} className={`${value===env?"is-selected":""} motif-${env.replaceAll(" ","-").toLowerCase()}`}><i/><b>{env==="In the presence of antibiotics"?"Antibiotics":env}</b><small>Player 1 {p>=0?"+":""}{p} · {mode==="2_players"?"Player 2":"Rival"} {o>=0?"+":""}{o}</small></button>})}</div><div className="environment-confirm"><p><span>Selected habitat</span><b>{value}</b><small>{selected.player.components.find(c=>c.name==="Environment")?.explanation} {mode==="2_players"?"Player 2":"Automated Rival"}: {selected.opponent.components.find(c=>c.name==="Environment")?.explanation}</small></p><button className="primary-action" onClick={()=>go("preview")}>Enter this habitat <span>→</span></button></div></section>
 }
 
 function Preview({ go, mode, player, opponent, playerCfu, opponentCfu, playerArsenal, opponentArsenal, environment, result }: { go:(screen:Screen)=>void; mode:GameMode; player:Fighter; opponent:Fighter; playerCfu:number; opponentCfu:number; playerArsenal:boolean; opponentArsenal:boolean; environment:Environment; result:BattleResult }) {
@@ -156,7 +159,7 @@ function Preview({ go, mode, player, opponent, playerCfu, opponentCfu, playerArs
 
 function Arena({ go, mode, player, opponent, environment, result, seed, reducedMotion }: { go:(screen:Screen)=>void;mode:GameMode;player:Fighter;opponent:Fighter;environment:Environment;result:BattleResult;seed:number;reducedMotion:boolean }) {
   const [paused,setPaused]=useState(false); return <section className="scene arena-scene" data-testid="screen-arena"><div className="heat-haze"/><div className="arena-top"><div><small>{mode==="2_players"?"Player 1":"You"} · <i>{player.fullName}</i></small><span><b style={{width:"64%"}}/></span></div><p>{environment.toUpperCase()}</p><div><small>{mode==="2_players"?"Player 2":"Automated Rival"} · <i>{opponent.fullName}</i></small><span><b style={{width:"64%"}}/></span></div></div>
-    <button className="pause-button" onClick={()=>setPaused(true)} aria-label="Pause battle">Ⅱ</button><PhaserArena paused={paused} reducedMotion={reducedMotion} environment={environment} player={player} opponent={opponent} result={result} seed={seed} onComplete={()=>go("results")}/>
+    <button className="pause-button" onClick={()=>setPaused(true)} aria-label="Pause battle">Ⅱ</button><PhaserArena paused={paused} reducedMotion={reducedMotion} environment={environment} player={player} opponent={opponent} result={result} seed={seed} onComplete={()=>go("results")} onCue={kind=>{if(kind==="attack"||kind==="counter")gameFeedback.cue("attack");else if(kind==="playerAbility"||kind==="opponentAbility")gameFeedback.cue("ability","medium");else if(kind==="finish")gameFeedback.cue("final_hit","strong");else if(kind==="environment")gameFeedback.cue("clash")}}/>
     {paused&&<div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Battle paused"><div><p className="eyebrow">Culture suspended</p><h2>Battle paused</h2><button className="primary-action" onClick={()=>setPaused(false)}>Resume culture <span>▶</span></button><button onClick={()=>go("home")}>Return to main menu</button></div></div>}
     <div className="battle-caption"><button onClick={() => go("results")}>Skip battle →</button></div>
   </section>;
@@ -179,11 +182,14 @@ export default function HomePage() {
   const [catalog,setCatalog]=useState<Fighter[]>([]); const [roster,setRoster]=useState<Fighter[]>([]); const [selected,setSelected]=useState<Fighter|null>(null); const [player1,setPlayer1]=useState<Fighter|null>(null); const [player2,setPlayer2]=useState<Fighter|null>(null); const [activePlayer,setActivePlayer]=useState<1|2>(1); const [setupPlayer,setSetupPlayer]=useState<1|2>(1); const [rosterSeed,setRosterSeed]=useState(41); const [catalogLoading,setCatalogLoading]=useState(true); const [battleSeed,setBattleSeed]=useState(17);
   const [player1Cfu,setPlayer1Cfu]=useState(100); const [player2Cfu,setPlayer2Cfu]=useState(100); const [player1Arsenal,setPlayer1Arsenal]=useState(false); const [player2Arsenal,setPlayer2Arsenal]=useState(false);
   useEffect(()=>{loadPreference<Partial<GamePreferences>>("game-preferences").then(value=>setPreferences(normalizePreferences(value))).catch(()=>undefined)},[]);
+  useEffect(()=>{gameFeedback.configure(preferences)},[preferences]);
+  useEffect(()=>{void gameFeedback.startPhase(screen==="arena"?"battle":screen==="results"?"results":"setup")},[screen]);
+  useEffect(()=>{const visibility=()=>document.hidden?gameFeedback.suspend():gameFeedback.resume();document.addEventListener("visibilitychange",visibility);return()=>document.removeEventListener("visibilitychange",visibility)},[]);
   useEffect(()=>{const update=()=>setViewport(classifyViewport(window.innerWidth,window.innerHeight));update();window.addEventListener("resize",update);return()=>window.removeEventListener("resize",update)},[]);
   const updatePreferences=(patch:Partial<GamePreferences>)=>setPreferences(current=>{const next=normalizePreferences({...current,...patch});void savePreference("game-preferences",next);return next});
   const navigate=(next:Screen)=>{setHistory(items=>[...items,screen]);setScreen(next)}; const goBack=()=>setHistory(items=>{const copy=items.slice();setScreen(copy.pop()||"home");return copy});
   useEffect(()=>{let live=true; fetch("./data/fighters-core.v2.json").then(response=>response.json()).then((data:RuntimeCatalog)=>{if(!live)return;setCatalog(data.fighters);setRoster(sampleFighters(data.fighters,10,41));}).finally(()=>live&&setCatalogLoading(false));return()=>{live=false}},[]);
-  const startGame=()=>{setActivePlayer(1);setSetupPlayer(1);setPlayer1(null);setPlayer2(null);setSelected(null);setPlayer1Cfu(100);setPlayer2Cfu(100);setPlayer1Arsenal(false);setPlayer2Arsenal(false);setEnvironment("Neutral");setBattleSeed(17);setRoster(previous=>sampleFighters(catalog,10,rosterSeed+1,previous));setRosterSeed(value=>value+1);setHistory(["home"]);setScreen("fighter")};
+  const startGame=()=>{gameFeedback.cue("select","medium");setActivePlayer(1);setSetupPlayer(1);setPlayer1(null);setPlayer2(null);setSelected(null);setPlayer1Cfu(100);setPlayer2Cfu(100);setPlayer1Arsenal(false);setPlayer2Arsenal(false);setEnvironment("Neutral");setBattleSeed(17);setRoster(previous=>sampleFighters(catalog,10,rosterSeed+1,previous));setRosterSeed(value=>value+1);setHistory(["home"]);setScreen("fighter")};
   const shuffleRoster=()=>{const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,activePlayer===2?player1||undefined:undefined));setRosterSeed(next);setSelected(null)};
   const confirmFighter=()=>{if(!selected)return;if(activePlayer===1){setPlayer1(selected);if(mode==="2_players"){setSelected(null);setActivePlayer(2);const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,selected));setRosterSeed(next);return}const rival=chooseCatalogOpponent(catalog,selected.catalogId,battleSeed);setPlayer2(rival);setPlayer2Cfu(generateOpponentCfu(battleSeed));setPlayer2Arsenal(new PythonRandom(battleSeed+1).random()>=.5);setSetupPlayer(1);setScreen("colony");return}setPlayer2(selected);setSetupPlayer(1);setScreen("colony")};
   const currentCfu=setupPlayer===1?player1Cfu:player2Cfu; const setCurrentCfu=setupPlayer===1?setPlayer1Cfu:setPlayer2Cfu; const currentArsenal=setupPlayer===1?player1Arsenal:player2Arsenal; const setCurrentArsenal=setupPlayer===1?setPlayer1Arsenal:setPlayer2Arsenal;

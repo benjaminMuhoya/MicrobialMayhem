@@ -18,3 +18,8 @@ The current audio files are generated entirely from simple waveforms and
 deterministic noise by `scripts/generate_audio_assets.py`. They contain no
 third-party recordings or copyrighted commercial music and can be regenerated
 from source at any time.
+
+The mobile/web build packages identical generated copies under
+`web/public/audio/`. `web/app/game/feedback.ts` is the single playback and
+lifecycle owner for these copies. No attribution is required; the files and
+generator are original project assets.

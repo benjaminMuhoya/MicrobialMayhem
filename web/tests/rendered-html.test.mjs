@@ -50,3 +50,12 @@ test("ships installable offline metadata and a versioned cache", async () => {
   assert.match(worker, /microbial-mayhem-v0\.4\.0/);
   assert.match(worker, /fighters-core\.v2\.json/);
 });
+
+test("packages original modular audio for offline mobile play", async () => {
+  const feedback = await readFile(new URL("app/game/feedback.ts", root), "utf8");
+  for (const file of ["setup_theme.wav", "battle_theme.wav", "results_theme.wav", "select.wav", "impact.wav", "victory.wav"]) {
+    await readFile(new URL(`../public/audio/${file.includes("theme") ? "music" : "sfx"}/${file}`, import.meta.url));
+  }
+  assert.match(feedback, /visibilitychange|suspend|resume/);
+  assert.match(feedback, /lastCue/);
+});

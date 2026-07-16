@@ -5,8 +5,8 @@ import { BATTLE_CUES, BATTLE_DURATION_MS, CompletionGate, battleHealth } from ".
 import type { BattleResult, Environment, Fighter } from "../game/types";
 import { differentiatedDuelProfiles, fighterVisualProfile } from "../game/visual-profile";
 
-export function PhaserArena({ paused=false,reducedMotion=false, environment, player, opponent, result, seed, onComplete }: { paused?:boolean;reducedMotion?:boolean;environment:Environment;player:Fighter;opponent:Fighter;result:BattleResult;seed:number;onComplete:()=>void }) {
-  const host=useRef<HTMLDivElement>(null); const gameRef=useRef<import("phaser").Game>(); const pausedRef=useRef(paused); const callback=useRef(onComplete); callback.current=onComplete;
+export function PhaserArena({ paused=false,reducedMotion=false, environment, player, opponent, result, seed, onComplete, onCue }: { paused?:boolean;reducedMotion?:boolean;environment:Environment;player:Fighter;opponent:Fighter;result:BattleResult;seed:number;onComplete:()=>void;onCue?:(kind:string)=>void }) {
+  const host=useRef<HTMLDivElement>(null); const gameRef=useRef<import("phaser").Game>(); const pausedRef=useRef(paused); const callback=useRef(onComplete); const cueCallback=useRef(onCue); callback.current=onComplete; cueCallback.current=onCue;
   useEffect(()=>{pausedRef.current=paused;const game=gameRef.current;if(!game)return;if(paused)game.scene.pause("BattleScene");else game.scene.resume("BattleScene")},[paused]);
   useEffect(()=>{let game:import("phaser").Game|undefined,disposed=false;const gate=new CompletionGate(),[playerProfile,opponentProfile]=differentiatedDuelProfiles(player,opponent);
     void import("phaser").then(({default:Phaser})=>{if(disposed||!host.current)return;
@@ -18,7 +18,7 @@ export function PhaserArena({ paused=false,reducedMotion=false, environment, pla
         announce(text:string){this.label.setText(text).setAlpha(1).setY(this.scale.height*.16+10);this.tweens.add({targets:this.label,alpha:0,y:this.label.y-10,duration:reducedMotion?80:700,delay:reducedMotion?20:360})}
         projectile(actor:Phaser.GameObjects.Container,target:Phaser.GameObjects.Container,color:number,arc=-90){const dot=this.add.circle(actor.x,actor.y,8,color,1);const path=new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(actor.x,actor.y),new Phaser.Math.Vector2((actor.x+target.x)/2,(actor.y+target.y)/2+arc),new Phaser.Math.Vector2(target.x,target.y));this.tweens.add({targets:{t:0},t:1,duration:reducedMotion?70:360,onUpdate:t=>{const p=path.getPoint(t.targets[0].t);dot.setPosition(p.x,p.y)},onComplete:()=>{dot.destroy();this.hit(target)}})}
         hit(target:Phaser.GameObjects.Container){this.impact.setPosition(target.x,target.y).setScale(1).setAlpha(1).setVisible(true);this.tweens.add({targets:this.impact,scale:9,alpha:0,duration:reducedMotion?70:300,onComplete:()=>this.impact.setVisible(false)});this.tweens.add({targets:target,x:"+=24",angle:5,duration:110,yoyo:true});if(!reducedMotion)this.cameras.main.shake(90,.004)}
-        cue(kind:string){const progress=(BATTLE_CUES.find(c=>c[1]===kind)?.[0]||0)/BATTLE_DURATION_MS,[a,b]=battleHealth(progress,result.winner);this.leftBar.width=300*a/100;this.rightBar.width=300*b/100;
+        cue(kind:string){cueCallback.current?.(kind);const progress=(BATTLE_CUES.find(c=>c[1]===kind)?.[0]||0)/BATTLE_DURATION_MS,[a,b]=battleHealth(progress,result.winner);this.leftBar.width=300*a/100;this.rightBar.width=300*b/100;
           if(kind==="entrance"){this.tweens.add({targets:this.left,x:this.scale.width*.27,duration:reducedMotion?50:600,ease:"Back.out"});this.tweens.add({targets:this.right,x:this.scale.width*.73,duration:reducedMotion?50:600,ease:"Back.out"})}
           if(kind==="anticipate"){this.announce("Both colonies size each other up");this.tweens.add({targets:[this.left,this.right],scaleX:1.08,scaleY:.92,duration:180,yoyo:true})}
           if(kind==="attack"){this.announce("Opening strike");this.projectile(this.left,this.right,0xff755f,-90)}
