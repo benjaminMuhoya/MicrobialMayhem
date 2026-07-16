@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Starter Project",
-  description: "A clean starting point for building your site.",
+  title: "Microbial Mayhem — Small cells. Big chemistry.",
+  description: "A vibrant, biologically grounded microbial battle game for the web.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -28,9 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>
     </html>
