@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 4 — Responsive authoritative flow (one-player vertical slice complete; local two-player orchestration remains).
+Gameplay parity restoration — audit complete; catalog interactions next.
 
 ## Completed work
 
@@ -44,6 +44,7 @@ Phase 4 — Responsive authoritative flow (one-player vertical slice complete; l
 ## Failures
 
 - None in the Python baseline.
+- Parity audit found that the web roster was a three-item prototype; search, reshuffle, Biology Details, true two-player setup, mode-aware preview copy, automatic arena completion, and Python-depth result explanations were missing or incomplete.
 
 ## Design decisions
 
