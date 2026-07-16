@@ -1,39 +1,37 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { BATTLE_CUES, BATTLE_DURATION_MS, CompletionGate, battleHealth } from "../game/battle-timeline";
 import type { BattleResult, Environment, Fighter } from "../game/types";
 
-export function PhaserArena({ reducedMotion = false, environment, player, opponent, result, seed, onComplete }: { reducedMotion?:boolean; environment:Environment; player:Fighter; opponent:Fighter; result:BattleResult; seed:number; onComplete:()=>void }) {
-  const host = useRef<HTMLDivElement>(null);
-  const completed = useRef(false); const complete=()=>{if(completed.current)return;completed.current=true;onComplete()};
-  useEffect(() => {
-    let game: import("phaser").Game | undefined;
-    let disposed = false;
-    void import("phaser").then(({ default: Phaser }) => {
-      if (disposed || !host.current) return;
-      class LivingArena extends Phaser.Scene {
-        left!: Phaser.GameObjects.Container; right!: Phaser.GameObjects.Container; impact!: Phaser.GameObjects.Arc;
-        createCell(x:number,y:number,color:number,flip=false){
-          const body=this.add.ellipse(0,0,210,118,color,.36).setStrokeStyle(4,color,.95);
-          const core=this.add.ellipse(-18,0,72,38,color,.7); const spots=[[-55,-22],[35,-28],[62,18]].map(([sx,sy])=>this.add.circle(sx,sy,5,0xffffff,.8));
-          const tail=this.add.graphics().lineStyle(4,color,.8); const side=flip?-1:1;
-          tail.lineBetween(side*102,0,side*145,-28).lineBetween(side*145,-28,side*184,-24).lineBetween(side*184,-24,side*220,15);
-          const container=this.add.container(x,y,[tail,body,core,...spots]); if(flip)container.setScale(-1,1); return container;
-        }
-        create(){
-          const {width,height}=this.scale; const bg=this.add.graphics(); bg.fillGradientStyle(0x0a241d,0x0a241d,0x321b16,0x321b16,1); bg.fillRect(0,0,width,height);
-          for(let i=0;i<28;i++){const p=this.add.circle((i*83)%width,80+(i*59)%(height-130),2+(i%4),i%3?0xff755f:0x7bf2bc,.25); if(!reducedMotion)this.tweens.add({targets:p,y:p.y-32,duration:1800+(i%5)*380,yoyo:true,repeat:-1,ease:"Sine.inOut",delay:i*70});}
-          this.left=this.createCell(width*.27,height*.56,0xff755f); this.right=this.createCell(width*.73,height*.54,0x7bf2bc,true);
-          this.left.x=-180; this.right.x=width+180; this.tweens.add({targets:this.left,x:width*.27,duration:reducedMotion?80:650,ease:"Back.out"}); this.tweens.add({targets:this.right,x:width*.73,duration:reducedMotion?80:650,ease:"Back.out"});
-          this.impact=this.add.circle(width*.5,height*.48,8,0xd7f171,.8); this.impact.setVisible(false);
-          this.time.delayedCall(reducedMotion?100:1100,()=>this.attack());
-          this.time.delayedCall(reducedMotion?500:8000,complete);
-        }
-        attack(){const {width}=this.scale; this.tweens.add({targets:this.left,x:width*.43,duration:reducedMotion?70:260,ease:"Cubic.in",yoyo:true,hold:70,onYoyo:()=>{this.impact.setVisible(true);this.tweens.add({targets:this.impact,scale:10,alpha:0,duration:reducedMotion?80:420,onComplete:()=>this.impact.setVisible(false)});this.cameras.main.shake(reducedMotion?0:110,.006);this.tweens.add({targets:this.right,x:"+=28",angle:5,duration:120,yoyo:true});}});}
+export function PhaserArena({ reducedMotion=false, environment, player, opponent, result, seed, onComplete }: { reducedMotion?:boolean;environment:Environment;player:Fighter;opponent:Fighter;result:BattleResult;seed:number;onComplete:()=>void }) {
+  const host=useRef<HTMLDivElement>(null); const callback=useRef(onComplete); callback.current=onComplete;
+  useEffect(()=>{let game:import("phaser").Game|undefined,disposed=false;const gate=new CompletionGate();
+    void import("phaser").then(({default:Phaser})=>{if(disposed||!host.current)return;
+      class BattleScene extends Phaser.Scene {
+        left!:Phaser.GameObjects.Container;right!:Phaser.GameObjects.Container;label!:Phaser.GameObjects.Text;shield!:Phaser.GameObjects.Arc;impact!:Phaser.GameObjects.Arc;leftBar!:Phaser.GameObjects.Rectangle;rightBar!:Phaser.GameObjects.Rectangle;
+        cell(x:number,y:number,color:number,flip=false){const body=this.add.ellipse(0,0,210,118,color,.34).setStrokeStyle(4,color,.95),core=this.add.ellipse(-18,0,72,38,color,.7),spots=[[-55,-22],[35,-28],[62,18]].map(([a,b])=>this.add.circle(a,b,5,0xffffff,.8)),tail=this.add.graphics().lineStyle(4,color,.8),side=flip?-1:1;tail.lineBetween(side*102,0,side*145,-28).lineBetween(side*145,-28,side*184,-24).lineBetween(side*184,-24,side*220,15);const c=this.add.container(x,y,[tail,body,core,...spots]);if(flip)c.setScale(-1,1);return c}
+        environmentFx(width:number,height:number){const color=environment==="Cold"?0xc9f4ff:environment==="Hot"?0xff755f:environment==="Salty"?0xefe8ca:environment==="Alkaline"?0x8ff3d1:environment==="Acidic"?0xd7f171:environment.includes("antibiotics")?0xff7894:0x7bf2bc;for(let i=0;i<24;i++){const x=(i*83+seed)%width,y=85+(i*59)%(height-130);let shape:Phaser.GameObjects.Shape;if(environment==="Salty")shape=this.add.rectangle(x,y,7,7,color,.38).setAngle(45);else if(environment.includes("antibiotics")){shape=this.add.rectangle(x,y,15,3,color,.42);this.add.rectangle(x,y,3,15,color,.42)}else shape=this.add.circle(x,y,2+i%4,color,.3).setStrokeStyle(environment==="Cold"||environment==="Alkaline"?1:0,color);if(!reducedMotion)this.tweens.add({targets:shape,y:y+(environment==="Hot"?-38:environment==="Cold"?12:-20),scale:environment==="Acidic"?1.7:1.1,duration:1600+(i%5)*330,yoyo:true,repeat:-1,ease:"Sine.inOut",delay:i*55})}if(environment.includes("antibiotics")){const scan=this.add.rectangle(width/2,110,width,8,color,.12);this.tweens.add({targets:scan,y:height-80,duration:2200,repeat:-1,yoyo:true})}}
+        create(){const {width,height}=this.scale;const bg=this.add.graphics();bg.fillGradientStyle(0x0a241d,0x0a241d,0x321b16,0x321b16,1).fillRect(0,0,width,height);this.environmentFx(width,height);this.left=this.cell(width*.27,height*.57,0xff755f);this.right=this.cell(width*.73,height*.55,0x7bf2bc,true);this.left.x=-180;this.right.x=width+180;this.impact=this.add.circle(width*.5,height*.49,8,0xd7f171,.8).setVisible(false);this.shield=this.add.circle(width*.68,height*.53,88,0x7bf2bc,.06).setStrokeStyle(4,0x7bf2bc,.65).setVisible(false);this.label=this.add.text(width/2,height*.16,"Fighters enter the arena",{fontFamily:"system-ui",fontSize:"22px",color:"#effff6",backgroundColor:"#071a16cc",padding:{x:16,y:9}}).setOrigin(.5).setAlpha(0);this.add.rectangle(210,40,300,9,0x243d35).setOrigin(0,.5);this.add.rectangle(width-510,40,300,9,0x243d35).setOrigin(0,.5);this.leftBar=this.add.rectangle(210,40,300,9,0x7bf2bc).setOrigin(0,.5);this.rightBar=this.add.rectangle(width-510,40,300,9,0x7bf2bc).setOrigin(0,.5);BATTLE_CUES.forEach(([at,kind])=>this.time.delayedCall(reducedMotion?Math.min(450,at/12):at,()=>this.cue(kind)));this.time.delayedCall(reducedMotion?600:BATTLE_DURATION_MS,()=>gate.finish(()=>callback.current()))}
+        announce(text:string){this.label.setText(text).setAlpha(1).setY(this.scale.height*.16+10);this.tweens.add({targets:this.label,alpha:0,y:this.label.y-10,duration:reducedMotion?80:700,delay:reducedMotion?20:360})}
+        projectile(actor:Phaser.GameObjects.Container,target:Phaser.GameObjects.Container,color:number,arc=-90){const dot=this.add.circle(actor.x,actor.y,8,color,1);const path=new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(actor.x,actor.y),new Phaser.Math.Vector2((actor.x+target.x)/2,(actor.y+target.y)/2+arc),new Phaser.Math.Vector2(target.x,target.y));this.tweens.add({targets:{t:0},t:1,duration:reducedMotion?70:360,onUpdate:t=>{const p=path.getPoint(t.targets[0].t);dot.setPosition(p.x,p.y)},onComplete:()=>{dot.destroy();this.hit(target)}})}
+        hit(target:Phaser.GameObjects.Container){this.impact.setPosition(target.x,target.y).setScale(1).setAlpha(1).setVisible(true);this.tweens.add({targets:this.impact,scale:9,alpha:0,duration:reducedMotion?70:300,onComplete:()=>this.impact.setVisible(false)});this.tweens.add({targets:target,x:"+=24",angle:5,duration:110,yoyo:true});if(!reducedMotion)this.cameras.main.shake(90,.004)}
+        cue(kind:string){const progress=(BATTLE_CUES.find(c=>c[1]===kind)?.[0]||0)/BATTLE_DURATION_MS,[a,b]=battleHealth(progress,result.winner);this.leftBar.width=300*a/100;this.rightBar.width=300*b/100;
+          if(kind==="entrance"){this.tweens.add({targets:this.left,x:this.scale.width*.27,duration:reducedMotion?50:600,ease:"Back.out"});this.tweens.add({targets:this.right,x:this.scale.width*.73,duration:reducedMotion?50:600,ease:"Back.out"})}
+          if(kind==="anticipate"){this.announce("Both colonies size each other up");this.tweens.add({targets:[this.left,this.right],scaleX:1.08,scaleY:.92,duration:180,yoyo:true})}
+          if(kind==="attack"){this.announce("Opening strike");this.projectile(this.left,this.right,0xff755f,-90)}
+          if(kind==="defend"){this.announce("Biofilm guard");this.shield.setVisible(true).setAlpha(.75);this.tweens.add({targets:this.shield,scale:1.25,alpha:0,duration:520,onComplete:()=>this.shield.setVisible(false)})}
+          if(kind==="counter"){this.announce("Counterattack");this.projectile(this.right,this.left,0x7bf2bc,80)}
+          if(kind==="dodge"){this.announce("Quick dodge");this.tweens.add({targets:this.left,y:"-=70",duration:160,yoyo:true,ease:"Sine.out"})}
+          if(kind==="playerAbility"){this.announce(player.accessions.length?"Player 1 ability activation":"Player 1 adaptive maneuver");this.projectile(this.left,this.right,0xd7f171,-130)}
+          if(kind==="environment")this.announce(`${environment} arena pressure`);
+          if(kind==="opponentAbility"){this.announce(opponent.accessions.length?"Opponent ability activation":"Opponent adaptive maneuver");this.projectile(this.right,this.left,0xb99cff,120)}
+          if(kind==="pause")this.announce("The arena goes quiet…");
+          if(kind==="finish"){this.announce(result.winner==="tie"?"Final clash!":"Finishing action!");const targets=result.winner==="A"?[this.left]:result.winner==="B"?[this.right]:[this.left,this.right];this.tweens.add({targets,scale:1.22,duration:180,yoyo:true});this.hit(this.impact)}
+          if(kind==="resolution"){this.leftBar.width=300*battleHealth(1,result.winner)[0]/100;this.rightBar.width=300*battleHealth(1,result.winner)[1]/100;this.announce("Battle resolved")}}
       }
-      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current!,transparent:true,width:1000,height:460,scene:LivingArena,scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},render:{antialias:true,pixelArt:false},audio:{noAudio:true}});
-    });
-    return()=>{disposed=true;game?.destroy(true)};
+      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current!,transparent:true,width:1000,height:460,scene:BattleScene,scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},render:{antialias:true,pixelArt:false},audio:{noAudio:true}})
+    });return()=>{disposed=true;game?.destroy(true)}
   },[reducedMotion,environment,player.catalogId,opponent.catalogId,result.winner,seed]);
   return <div ref={host} className={`phaser-arena arena-${environment.replaceAll(" ","-").toLowerCase()}`} role="img" aria-label={`Scripted microscopic battle between ${player.fullName} and ${opponent.fullName}`}/>;
 }
