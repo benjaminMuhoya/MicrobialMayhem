@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { PwaRuntime } from "./components/PwaRuntime";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,6 +16,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Microbial Mayhem — Small cells. Big chemistry.",
   description: "A vibrant, biologically grounded microbial battle game for the web.",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#071a16",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -29,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <PwaRuntime />{children}
       </body>
     </html>
   );

@@ -31,3 +31,11 @@ test("prototype includes six screens and responsive accessibility rules", async 
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /focus-visible/);
 });
+
+test("ships installable offline metadata and a versioned cache", async () => {
+  const manifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
+  const worker = await readFile(new URL("../public/sw.js", import.meta.url), "utf8");
+  assert.equal(manifest.display, "standalone");
+  assert.match(worker, /microbial-mayhem-v0\.4\.0/);
+  assert.match(worker, /fighters-core\.v2\.json/);
+});

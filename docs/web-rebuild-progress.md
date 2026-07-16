@@ -22,6 +22,7 @@ Phase 4 — Responsive authoritative flow (one-player vertical slice complete; l
 - Built and validated a 384-fighter web core roster, compact search index, version manifest, and SHA-256 checksums from developer-retained source data.
 - Connected colony, arsenal, habitat, preview, Phaser arena, and results into a real one-player scoring flow.
 - Replaced placeholder result totals and component disclosure with output from the parity-tested TypeScript scoring engine.
+- Added installable PWA metadata, a versioned network-first offline cache, and an IndexedDB preference store boundary.
 
 ## Tests run
 
@@ -33,6 +34,7 @@ Phase 4 — Responsive authoritative flow (one-player vertical slice complete; l
 - Browser checks: desktop home and colony layouts passed; 390 × 844 portrait home layout passed; navigation and colony interaction passed.
 - TypeScript/Python parity: all 6 deterministic fixtures passed, including the exact seeded tie.
 - Combined web tests: 8 passed.
+- Combined web tests after PWA layer: 9 passed.
 - Phaser browser check: canvas attached, no active error overlay, arena screenshot passed visual inspection.
 - Browser one-player vertical slice: setup-to-preview, Phaser canvas mount, arena skip, and authoritative results passed after a clean server restart.
 - Python suite after schema v2: 72 passed.
