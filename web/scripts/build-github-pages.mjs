@@ -19,6 +19,10 @@ const response = await worker.fetch(
 if (!response.ok) throw new Error(`Unable to render the GitHub Pages shell (${response.status}).`);
 
 const html = (await response.text())
+  // Vinext embeds its hydration entry point and RSC asset references inside
+  // inline scripts, so rewriting only HTML href/src attributes leaves a
+  // visually complete but non-interactive page on a project Pages URL.
+  .replaceAll("/assets/", "./assets/")
   .replaceAll('href="/', 'href="./')
   .replaceAll('src="/', 'src="./');
 
@@ -26,6 +30,11 @@ await writeFile(new URL("index.html", output), html);
 await writeFile(new URL(".nojekyll", output), "");
 
 const built = await readFile(new URL("index.html", output), "utf8");
-if (!built.includes("Microbial Mayhem") || !built.includes("./assets/")) {
+if (
+  !built.includes("Microbial Mayhem") ||
+  !built.includes("./assets/") ||
+  built.includes('import("/assets/') ||
+  built.includes('href="/assets/')
+) {
   throw new Error("GitHub Pages output did not contain the expected game shell and relative assets.");
 }
