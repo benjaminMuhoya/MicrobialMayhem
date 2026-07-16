@@ -51,5 +51,7 @@ export class PythonRandom {
 
   random() { const a = this.uint32() >>> 5; const b = this.uint32() >>> 6; return (a * 67108864 + b) / 9007199254740992; }
   uniform(low: number, high: number) { return low + (high - low) * this.random(); }
+  getrandbits(bits: number) { if (bits < 1 || bits > 32) throw new RangeError("getrandbits supports 1..32 bits"); return this.uint32() >>> (32 - bits); }
+  randbelow(limit: number) { const bits = Math.floor(Math.log2(limit)) + 1; let value = this.getrandbits(bits); while (value >= limit) value = this.getrandbits(bits); return value; }
+  randint(low: number, high: number) { return low + this.randbelow(high - low + 1); }
 }
-
