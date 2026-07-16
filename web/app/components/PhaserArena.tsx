@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { BattleResult, Environment, Fighter } from "../game/types";
 
-export function PhaserArena({ reducedMotion = false }: { reducedMotion?: boolean }) {
+export function PhaserArena({ reducedMotion = false, environment, player, opponent, result, seed, onComplete }: { reducedMotion?:boolean; environment:Environment; player:Fighter; opponent:Fighter; result:BattleResult; seed:number; onComplete:()=>void }) {
   const host = useRef<HTMLDivElement>(null);
+  const completed = useRef(false); const complete=()=>{if(completed.current)return;completed.current=true;onComplete()};
   useEffect(() => {
     let game: import("phaser").Game | undefined;
     let disposed = false;
@@ -25,12 +27,13 @@ export function PhaserArena({ reducedMotion = false }: { reducedMotion?: boolean
           this.left.x=-180; this.right.x=width+180; this.tweens.add({targets:this.left,x:width*.27,duration:reducedMotion?80:650,ease:"Back.out"}); this.tweens.add({targets:this.right,x:width*.73,duration:reducedMotion?80:650,ease:"Back.out"});
           this.impact=this.add.circle(width*.5,height*.48,8,0xd7f171,.8); this.impact.setVisible(false);
           this.time.delayedCall(reducedMotion?100:1100,()=>this.attack());
+          this.time.delayedCall(reducedMotion?500:8000,complete);
         }
         attack(){const {width}=this.scale; this.tweens.add({targets:this.left,x:width*.43,duration:reducedMotion?70:260,ease:"Cubic.in",yoyo:true,hold:70,onYoyo:()=>{this.impact.setVisible(true);this.tweens.add({targets:this.impact,scale:10,alpha:0,duration:reducedMotion?80:420,onComplete:()=>this.impact.setVisible(false)});this.cameras.main.shake(reducedMotion?0:110,.006);this.tweens.add({targets:this.right,x:"+=28",angle:5,duration:120,yoyo:true});}});}
       }
       game=new Phaser.Game({type:Phaser.AUTO,parent:host.current!,transparent:true,width:1000,height:460,scene:LivingArena,scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},render:{antialias:true,pixelArt:false},audio:{noAudio:true}});
     });
     return()=>{disposed=true;game?.destroy(true)};
-  },[reducedMotion]);
-  return <div ref={host} className="phaser-arena" role="img" aria-label="Scripted microscopic battle between two procedural bacterial fighters"/>;
+  },[reducedMotion,environment,player.catalogId,opponent.catalogId,result.winner,seed]);
+  return <div ref={host} className={`phaser-arena arena-${environment.replaceAll(" ","-").toLowerCase()}`} role="img" aria-label={`Scripted microscopic battle between ${player.fullName} and ${opponent.fullName}`}/>;
 }

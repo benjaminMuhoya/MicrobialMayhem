@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { PhaserArena } from "./components/PhaserArena";
 import { scoreBattle } from "./game/scoring";
 import type { BattleResult, Environment, Fighter, GameMode } from "./game/types";
-import { sampleFighters, searchFighters, type RuntimeCatalog } from "./game/catalog";
+import { chooseCatalogOpponent, generateOpponentCfu, sampleFighters, searchFighters, type RuntimeCatalog } from "./game/catalog";
+import { PythonRandom } from "./game/python-random";
 
 type Screen = "home" | "fighter" | "colony" | "arsenal" | "environment" | "preview" | "arena" | "results";
 
@@ -45,9 +46,9 @@ function AppHeader({ screen, setScreen }: { screen: Screen; setScreen: (screen: 
       </button>
       <nav className="prototype-nav" aria-label="Design prototype screens">
         {screens.map((item) => (
-          <button key={item.id} className={screen === item.id ? "is-active" : ""} onClick={() => setScreen(item.id)}>
+          <span key={item.id} className={screen === item.id ? "is-active" : ""} aria-current={screen===item.id?"step":undefined}>
             {item.label}
-          </button>
+          </span>
         ))}
       </nav>
       <button className="icon-button" aria-label="Open settings"><span className="gear">✦</span></button>
@@ -110,11 +111,11 @@ function FighterScreen({ fighters, roster, selected, locked, activePlayer, loadi
   );
 }
 
-function Colony({ go, cfu, setCfu }: { go: (screen: Screen) => void; cfu:number; setCfu:(cfu:number)=>void }) {
+function Colony({ onConfirm, cfu, setCfu, mode, setupPlayer }: { onConfirm: () => void; cfu:number; setCfu:(cfu:number)=>void; mode:GameMode; setupPlayer:1|2 }) {
   const cells = Math.max(7, Math.round(cfu / 35));
   const score = Math.log10(cfu + 1) / Math.log10(1001) * 10;
   return <section className="scene colony-scene" data-testid="screen-colony">
-    <div className="screen-heading"><div><p className="eyebrow">Step 2 · colony preparation</p><h2>Grow your numbers</h2></div><p>More cells add strength with diminishing returns.</p></div>
+    <div className="screen-heading"><div><p className="eyebrow">{mode==="2_players"?`Player ${setupPlayer} · `:""}colony preparation</p><h2>Grow your numbers</h2></div><p>More cells add strength with diminishing returns.</p></div>
     <div className="colony-layout">
       <div className="culture-dish" style={{"--energy": `${cfu / 1000}`} as React.CSSProperties}>
         <div className="culture-dish__well">
@@ -125,61 +126,67 @@ function Colony({ go, cfu, setCfu }: { go: (screen: Screen) => void; cfu:number;
         <input aria-label="Colony forming units" type="range" min="0" max="1000" step="10" value={cfu} onChange={(event) => setCfu(Number(event.target.value))}/>
         <div className="range-labels"><span>0</span><span>1,000</span></div>
         <div className="score-contribution"><span>Battle contribution</span><b>+{score.toFixed(1)}</b><small>of 10 points</small></div>
-        <button className="primary-action" onClick={() => go("arsenal")}>Lock colony <span>→</span></button>
+        <button className="primary-action" onClick={onConfirm}>Lock Player {setupPlayer} colony <span>→</span></button>
       </div>
     </div>
   </section>;
 }
 
-function Arsenal({go,active,setActive}:{go:(screen:Screen)=>void;active:boolean;setActive:(value:boolean)=>void}){
-  return <section className="scene prep-scene" data-testid="screen-arsenal"><div className="screen-heading"><div><p className="eyebrow">Step 3 · biosynthetic preparation</p><h2>Activate documented chemistry?</h2></div><p>Five MIBiG records are available for this fighter.</p></div><div className="gene-stage"><Microbe tone="violet"/><div className={`gene-chain ${active?"is-active":""}`}>{[1,2,3,4,5].map(i=><i key={i}>BGC {i}</i>)}</div></div><div className="prep-controls"><p><b>{active?"Arsenal activated":"Arsenal dormant"}</b><span>{active?"Documented clusters contribute up to +5 offense points.":"Known activity remains documented, but BGC accessions add no arsenal points."}</span></p><div className="binary-choice"><button className={active?"is-selected":""} onClick={()=>setActive(true)}>Activate</button><button className={!active?"is-selected":""} onClick={()=>setActive(false)}>Keep dormant</button></div><button className="primary-action" onClick={()=>go("environment")}>Confirm preparation <span>→</span></button></div></section>
+function Arsenal({onConfirm,active,setActive,fighter,mode,setupPlayer}:{onConfirm:()=>void;active:boolean;setActive:(value:boolean)=>void;fighter:Fighter;mode:GameMode;setupPlayer:1|2}){
+  const documented=fighter.accessions.length>0; return <section className="scene prep-scene" data-testid="screen-arsenal"><div className="screen-heading"><div><p className="eyebrow">{mode==="2_players"?`Player ${setupPlayer} · `:""}biosynthetic preparation</p><h2>{documented?"Activate documented chemistry?":"No documented arsenal available"}</h2></div><p>{fighter.accessions.length} MIBiG record(s) are available for this fighter.</p></div><div className="gene-stage"><Microbe tone="violet"/><div className={`gene-chain ${active&&documented?"is-active":""}`}>{fighter.accessions.slice(0,5).map((id,i)=><i key={id}>{id||`BGC ${i+1}`}</i>)}</div></div><div className="prep-controls"><p><b>{active&&documented?"Arsenal activated":"Arsenal dormant"}</b><span>{active&&documented?"Documented clusters contribute up to +5 offense points.":documented?"Known activity remains documented, but BGC accessions add no arsenal points.":"No documented BGC is available, so the game does not imply an arsenal."}</span></p><div className="binary-choice"><button disabled={!documented} className={active&&documented?"is-selected":""} onClick={()=>setActive(true)}>Activate</button><button className={!active||!documented?"is-selected":""} onClick={()=>setActive(false)}>Keep dormant</button></div><button className="primary-action" onClick={onConfirm}>Confirm Player {setupPlayer} preparation <span>→</span></button></div></section>
 }
 
 const environments:Environment[]=["Neutral","Salty","Alkaline","Hot","Cold","Acidic","In the presence of antibiotics"];
-function EnvironmentScreen({go,value,setValue}:{go:(screen:Screen)=>void;value:Environment;setValue:(value:Environment)=>void}){
- return <section className={`scene environment-scene env-${value.replaceAll(" ","-").toLowerCase()}`} data-testid="screen-environment"><div className="screen-heading"><div><p className="eyebrow">Step 4 · habitat pressure</p><h2>Choose the living arena</h2></div><p>Actual modifiers are shown before confirmation.</p></div><div className="environment-grid">{environments.map(env=><button key={env} onClick={()=>setValue(env)} className={value===env?"is-selected":""}><i/><b>{env==="In the presence of antibiotics"?"Antibiotics":env}</b><small>{env==="Hot"?"Player +12 · Rival +0":env==="Cold"?"Player +0 · Rival +12":env==="Neutral"?"Both +0":"No supported match · both −3"}</small></button>)}</div><div className="environment-confirm"><p><span>Selected habitat</span><b>{value}</b><small>{value==="Hot"?"Supported thermophile evidence gives your fighter +12.":value==="Cold"?"Supported cryophile evidence gives the rival +12.":value==="Neutral"?"Neutral medium changes neither score.":"Current evidence preview applies the shared uncertainty rule."}</small></p><button className="primary-action" onClick={()=>go("preview")}>Enter this habitat <span>→</span></button></div></section>
+function EnvironmentScreen({go,value,setValue,mode,previewFor}:{go:(screen:Screen)=>void;value:Environment;setValue:(value:Environment)=>void;mode:GameMode;previewFor:(environment:Environment)=>BattleResult}){
+ const modifier=(env:Environment,side:"player"|"opponent")=>previewFor(env)[side].components.find(c=>c.name==="Environment")?.value||0; const selected=previewFor(value); const selectedP=modifier(value,"player"),selectedO=modifier(value,"opponent");
+ return <section className={`scene environment-scene env-${value.replaceAll(" ","-").toLowerCase()}`} data-testid="screen-environment"><div className="screen-heading"><div><p className="eyebrow">Shared arena · habitat pressure</p><h2>Choose the living arena</h2></div><p>Actual modifiers are shown before confirmation.</p></div><div className="environment-grid">{environments.map(env=>{const p=modifier(env,"player"),o=modifier(env,"opponent");return <button key={env} onClick={()=>setValue(env)} className={`${value===env?"is-selected":""} motif-${env.replaceAll(" ","-").toLowerCase()}`}><i/><b>{env==="In the presence of antibiotics"?"Antibiotics":env}</b><small>Player 1 {p>=0?"+":""}{p} · {mode==="2_players"?"Player 2":"Rival"} {o>=0?"+":""}{o}</small></button>})}</div><div className="environment-confirm"><p><span>Selected habitat</span><b>{value}</b><small>{selected.player.components.find(c=>c.name==="Environment")?.explanation} {mode==="2_players"?"Player 2":"Automated Rival"}: {selected.opponent.components.find(c=>c.name==="Environment")?.explanation}</small></p><button className="primary-action" onClick={()=>go("preview")}>Enter this habitat <span>→</span></button></div></section>
 }
 
-function Preview({ go }: { go: (screen: Screen) => void }) {
+function Preview({ go, mode, player, opponent, playerCfu, opponentCfu, playerArsenal, opponentArsenal, environment, result }: { go:(screen:Screen)=>void; mode:GameMode; player:Fighter; opponent:Fighter; playerCfu:number; opponentCfu:number; playerArsenal:boolean; opponentArsenal:boolean; environment:Environment; result:BattleResult }) {
+  const pEnv=result.player.components.find(c=>c.name==="Environment")?.value||0; const oEnv=result.opponent.components.find(c=>c.name==="Environment")?.value||0;
   return <section className="scene preview-scene" data-testid="screen-preview"><div className="arena-aura"/>
-    <div className="screen-heading centered"><p className="eyebrow">Hot spring · 78°C</p><h2>Ready to culture chaos?</h2><p>Thermophile evidence grants the left fighter a <b>+12 environment advantage</b>.</p></div>
-    <div className="versus"><article><span className="player-label">Your fighter</span><Microbe tone="coral"/><h3><i>Bacillus cereus</i></h3><dl><div><dt>Colony</dt><dd>500 CFU</dd></div><div><dt>Arsenal</dt><dd className="active">Activated</dd></div></dl></article><span className="versus-mark">VS</span><article><span className="player-label">Database rival</span><Microbe tone="mint"/><h3><i>Psychrobacter cryonix</i></h3><dl><div><dt>Colony</dt><dd>250 CFU</dd></div><div><dt>Arsenal</dt><dd>Dormant</dd></div></dl></article></div>
+    <div className="screen-heading centered"><p className="eyebrow">{environment}</p><h2>Ready to culture chaos?</h2><p>Actual environment modifiers: Player 1 <b>{pEnv>=0?"+":""}{pEnv}</b> · {mode==="2_players"?"Player 2":"Automated Rival"} <b>{oEnv>=0?"+":""}{oEnv}</b>.</p></div>
+    <div className="versus"><article><span className="player-label">{mode==="2_players"?"Player 1":"You"}</span><Microbe tone="coral"/><h3><i>{player.fullName}</i></h3><dl><div><dt>Colony</dt><dd>{playerCfu} CFU</dd></div><div><dt>Arsenal</dt><dd className={playerArsenal?"active":""}>{playerArsenal?"Activated":"Dormant"}</dd></div></dl></article><span className="versus-mark">VS</span><article><span className="player-label">{mode==="2_players"?"Player 2":"Automated Rival"}</span><Microbe tone="mint"/><h3><i>{opponent.fullName}</i></h3><dl><div><dt>Colony</dt><dd>{opponentCfu} CFU</dd></div><div><dt>Arsenal</dt><dd className={opponentArsenal?"active":""}>{opponentArsenal?"Activated":"Dormant"}</dd></div></dl></article></div>
     <button className="primary-action centered-action" onClick={() => go("arena")}>Enter the microscopic arena <span>→</span></button>
   </section>;
 }
 
-function Arena({ go }: { go: (screen: Screen) => void }) {
-  return <section className="scene arena-scene" data-testid="screen-arena"><div className="heat-haze"/><div className="arena-top"><div><small>You · <i>B. cereus</i></small><span><b style={{width:"64%"}}/></span></div><p>HOT SPRING <small>78°C</small></p><div><small>Rival · <i>P. cryonix</i></small><span><b style={{width:"38%"}}/></span></div></div>
-    <PhaserArena />
-    <div className="battle-caption"><span>05.8s</span><p><b>Environment pressure</b> · Heat adaptation is shifting the momentum.</p><button onClick={() => go("results")}>Skip →</button></div>
+function Arena({ go, mode, player, opponent, environment, result, seed }: { go:(screen:Screen)=>void;mode:GameMode;player:Fighter;opponent:Fighter;environment:Environment;result:BattleResult;seed:number }) {
+  return <section className="scene arena-scene" data-testid="screen-arena"><div className="heat-haze"/><div className="arena-top"><div><small>{mode==="2_players"?"Player 1":"You"} · <i>{player.fullName}</i></small><span><b style={{width:"64%"}}/></span></div><p>{environment.toUpperCase()}</p><div><small>{mode==="2_players"?"Player 2":"Automated Rival"} · <i>{opponent.fullName}</i></small><span><b style={{width:"64%"}}/></span></div></div>
+    <PhaserArena environment={environment} player={player} opponent={opponent} result={result} seed={seed} onComplete={()=>go("results")}/>
+    <div className="battle-caption"><span>8.0s</span><p><b>Outcome precomputed</b> · The animation dramatizes the stored battle result.</p><button onClick={() => go("results")}>Skip →</button></div>
   </section>;
 }
 
-function Results({ go, result }: { go: (screen: Screen) => void; result:BattleResult }) {
+function Results({ result, mode, player, opponent, environment, onRematch, onChangeFighters, onMainMenu }: { result:BattleResult;mode:GameMode;player:Fighter;opponent:Fighter;environment:Environment;onRematch:()=>void;onChangeFighters:()=>void;onMainMenu:()=>void }) {
   const [expanded, setExpanded] = useState(false);
-  const playerWon=result.winner==="A"; return <section className="scene results-scene" data-testid="screen-results"><div className="result-orbit"><Microbe tone={playerWon?"coral":"mint"}/></div><p className="eyebrow">Culture resolved</p><h2>{result.winner==="tie"?"Perfect equilibrium.":playerWon?"Victory blooms.":"The rival thrives."}</h2><h3><i>{playerWon?result.player.fighterName:result.opponent.fighterName}</i> {result.winner==="tie"?"draws":"wins"}</h3><p className="result-lede">Environment, colony growth and documented chemistry resolved this precomputed outcome.</p>
-    <div className="score-pair"><div><small>Your score</small><b>{result.player.total.toFixed(1)}</b></div><span>{(result.player.total-result.opponent.total)>=0?"+":""}{(result.player.total-result.opponent.total).toFixed(1)}</span><div><small>Rival score</small><b>{result.opponent.total.toFixed(1)}</b></div></div>
+  const playerWon=result.winner==="A", tie=result.winner==="tie"; const winner=playerWon?player:opponent; const missing=!winner.products.length||!winner.activities.length||!winner.curiousFact; const headline=mode==="2_players"?(tie?"TIE!":playerWon?"PLAYER 1 WINS!":"PLAYER 2 WINS!"):(tie?"TIE!":playerWon?"VICTORY!":"DEFEAT!"); return <section className="scene results-scene" data-testid="screen-results"><div className="result-orbit"><Microbe tone={playerWon?"coral":"mint"}/></div><p className="eyebrow">Culture resolved</p><h2>{headline}</h2><h3>{tie?"Evenly matched!":<><i>{winner.fullName}</i> wins</>}</h3><p className="result-lede">{tie?"That was a good fight! The microbes were tied.":Math.abs(result.player.total-result.opponent.total)>=10?"A commanding culture! The winner adapted, grew and brought the stronger biological toolkit.":"A close culture clash—small biological advantages decided the arena."}</p>
+    <div className="score-pair"><div><small>{mode==="2_players"?"Player 1":"You"}</small><b>{result.player.total.toFixed(1)}</b></div><span>{(result.player.total-result.opponent.total)>=0?"+":""}{(result.player.total-result.opponent.total).toFixed(1)}</span><div><small>{mode==="2_players"?"Player 2":"Automated Rival"}</small><b>{result.opponent.total.toFixed(1)}</b></div></div>
     <button className="science-toggle" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>Scientific breakdown <span>{expanded ? "−" : "+"}</span></button>
-    {expanded && <div className="breakdown">{result.player.components.filter(c=>c.name!=="Base"&&c.includedInTotal).map(c=><span key={c.name}><b>{c.value>=0?"+":""}{c.value.toFixed(1)}</b>{c.name}</span>)}</div>}
-    <div className="result-actions"><button className="primary-action">Rematch <span>↻</span></button><button onClick={() => go("fighter")}>Change fighters</button><button onClick={() => go("home")}>Main menu</button></div>
+    {expanded && <div className="full-breakdown"><div className="score-columns">{[[mode==="2_players"?"Player 1":"You",result.player],[mode==="2_players"?"Player 2":"Automated Rival",result.opponent]].map(([label,data])=><article key={String(label)}><h4>{String(label)} · {(data as typeof result.player).fighterName}</h4>{(data as typeof result.player).components.filter(c=>c.name!=="Base").map(c=><span key={c.name}><b>{c.value>=0?"+":""}{c.value.toFixed(1)}</b><em>{c.name}</em><small>{c.explanation}</small></span>)}</article>)}</div><aside><b>Biological interpretation</b><p>{tie?"Neither culture established a scoring advantage under the documented evidence and shared arena rules.":`${winner.fullName} brought ${winner.accessions.length} known BGC(s). ${environment} pressure, colony size and documented activity produced the decisive component difference.`} {missing?"Some biological details remain unresolved. That is why we need more research.":winner.curiousFact}</p></aside></div>}
+    <div className="result-actions"><button className="primary-action" onClick={onRematch}>Rematch <span>↻</span></button><button onClick={onChangeFighters}>Change fighters</button><button onClick={onMainMenu}>Main menu</button></div>
   </section>;
 }
 
 export default function HomePage() {
   const [screen, setScreen] = useState<Screen>("home");
-  const [mode,setMode]=useState<GameMode>("1_player"); const [cfu,setCfu]=useState(500); const [arsenal,setArsenal]=useState(true); const [environment,setEnvironment]=useState<Environment>("Hot");
-  const [catalog,setCatalog]=useState<Fighter[]>([]); const [roster,setRoster]=useState<Fighter[]>([]); const [selected,setSelected]=useState<Fighter|null>(null); const [player1,setPlayer1]=useState<Fighter|null>(null); const [activePlayer,setActivePlayer]=useState<1|2>(1); const [rosterSeed,setRosterSeed]=useState(41); const [catalogLoading,setCatalogLoading]=useState(true);
+  const [mode,setMode]=useState<GameMode>("1_player"); const [environment,setEnvironment]=useState<Environment>("Neutral");
+  const [catalog,setCatalog]=useState<Fighter[]>([]); const [roster,setRoster]=useState<Fighter[]>([]); const [selected,setSelected]=useState<Fighter|null>(null); const [player1,setPlayer1]=useState<Fighter|null>(null); const [player2,setPlayer2]=useState<Fighter|null>(null); const [activePlayer,setActivePlayer]=useState<1|2>(1); const [setupPlayer,setSetupPlayer]=useState<1|2>(1); const [rosterSeed,setRosterSeed]=useState(41); const [catalogLoading,setCatalogLoading]=useState(true); const [battleSeed,setBattleSeed]=useState(17);
+  const [player1Cfu,setPlayer1Cfu]=useState(100); const [player2Cfu,setPlayer2Cfu]=useState(100); const [player1Arsenal,setPlayer1Arsenal]=useState(false); const [player2Arsenal,setPlayer2Arsenal]=useState(false);
   useEffect(()=>{let live=true; fetch("/data/fighters-core.v2.json").then(response=>response.json()).then((data:RuntimeCatalog)=>{if(!live)return;setCatalog(data.fighters);setRoster(sampleFighters(data.fighters,10,41));}).finally(()=>live&&setCatalogLoading(false));return()=>{live=false}},[]);
-  const startGame=()=>{setActivePlayer(1);setPlayer1(null);setSelected(null);setCfu(100);setArsenal(true);setEnvironment("Neutral");setRoster(previous=>sampleFighters(catalog,10,rosterSeed+1,previous));setRosterSeed(value=>value+1);setScreen("fighter")};
+  const startGame=()=>{setActivePlayer(1);setSetupPlayer(1);setPlayer1(null);setPlayer2(null);setSelected(null);setPlayer1Cfu(100);setPlayer2Cfu(100);setPlayer1Arsenal(false);setPlayer2Arsenal(false);setEnvironment("Neutral");setBattleSeed(17);setRoster(previous=>sampleFighters(catalog,10,rosterSeed+1,previous));setRosterSeed(value=>value+1);setScreen("fighter")};
   const shuffleRoster=()=>{const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,activePlayer===2?player1||undefined:undefined));setRosterSeed(next);setSelected(null)};
-  const confirmFighter=()=>{if(!selected)return;if(mode==="2_players"&&activePlayer===1){setPlayer1(selected);setSelected(null);setActivePlayer(2);const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,selected));setRosterSeed(next);return}setScreen("colony")};
-  const result=useMemo(()=>scoreBattle({mode,seed:17,environment,player:battleFighters[0],opponent:battleFighters[1],playerColonyCfu:cfu,opponentColonyCfu:250,playerArsenal:arsenal,opponentArsenal:false}),[mode,cfu,arsenal,environment]);
+  const confirmFighter=()=>{if(!selected)return;if(activePlayer===1){setPlayer1(selected);if(mode==="2_players"){setSelected(null);setActivePlayer(2);const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,selected));setRosterSeed(next);return}const rival=chooseCatalogOpponent(catalog,selected.catalogId,battleSeed);setPlayer2(rival);setPlayer2Cfu(generateOpponentCfu(battleSeed));setPlayer2Arsenal(new PythonRandom(battleSeed+1).random()>=.5);setSetupPlayer(1);setScreen("colony");return}setPlayer2(selected);setSetupPlayer(1);setScreen("colony")};
+  const currentCfu=setupPlayer===1?player1Cfu:player2Cfu; const setCurrentCfu=setupPlayer===1?setPlayer1Cfu:setPlayer2Cfu; const currentArsenal=setupPlayer===1?player1Arsenal:player2Arsenal; const setCurrentArsenal=setupPlayer===1?setPlayer1Arsenal:setPlayer2Arsenal;
+  const confirmArsenal=()=>{if(mode==="2_players"&&setupPlayer===1){setSetupPlayer(2);setScreen("colony")}else setScreen("environment")};
+  const p1=player1||battleFighters[0],p2=player2||battleFighters[1];
+  const result=useMemo(()=>scoreBattle({mode,seed:battleSeed,environment,player:p1,opponent:p2,playerColonyCfu:player1Cfu,opponentColonyCfu:player2Cfu,playerArsenal:player1Arsenal,opponentArsenal:player2Arsenal}),[mode,battleSeed,environment,p1,p2,player1Cfu,player2Cfu,player1Arsenal,player2Arsenal]);
   const content = screen === "home" ? <Home start={startGame} mode={mode} setMode={setMode}/> :
     screen === "fighter" ? <FighterScreen fighters={catalog} roster={roster} selected={selected} locked={player1} activePlayer={activePlayer} loading={catalogLoading} onSelect={setSelected} onConfirm={confirmFighter} onShuffle={shuffleRoster} onResetRoster={shuffleRoster}/> :
-    screen === "colony" ? <Colony go={setScreen} cfu={cfu} setCfu={setCfu}/> :
-    screen === "arsenal" ? <Arsenal go={setScreen} active={arsenal} setActive={setArsenal}/> :
-    screen === "environment" ? <EnvironmentScreen go={setScreen} value={environment} setValue={setEnvironment}/> :
-    screen === "preview" ? <Preview go={setScreen}/> :
-    screen === "arena" ? <Arena go={setScreen}/> : <Results go={setScreen} result={result}/>;
+    screen === "colony" ? <Colony onConfirm={()=>setScreen("arsenal")} cfu={currentCfu} setCfu={setCurrentCfu} mode={mode} setupPlayer={setupPlayer}/> :
+    screen === "arsenal" ? <Arsenal onConfirm={confirmArsenal} active={currentArsenal} setActive={setCurrentArsenal} fighter={setupPlayer===1?p1:p2} mode={mode} setupPlayer={setupPlayer}/> :
+    screen === "environment" ? <EnvironmentScreen go={setScreen} value={environment} setValue={setEnvironment} mode={mode} previewFor={env=>scoreBattle({mode,seed:battleSeed,environment:env,player:p1,opponent:p2,playerColonyCfu:player1Cfu,opponentColonyCfu:player2Cfu,playerArsenal:player1Arsenal,opponentArsenal:player2Arsenal})}/> :
+    screen === "preview" ? <Preview go={setScreen} mode={mode} player={p1} opponent={p2} playerCfu={player1Cfu} opponentCfu={player2Cfu} playerArsenal={player1Arsenal} opponentArsenal={player2Arsenal} environment={environment} result={result}/> :
+    screen === "arena" ? <Arena go={setScreen} mode={mode} player={p1} opponent={p2} environment={environment} result={result} seed={battleSeed}/> : <Results result={result} mode={mode} player={p1} opponent={p2} environment={environment} onRematch={()=>{setBattleSeed(seed=>seed+1);if(mode==="1_player")setPlayer2Cfu(generateOpponentCfu(battleSeed+1));setScreen("arena")}} onChangeFighters={startGame} onMainMenu={()=>{setPlayer1(null);setPlayer2(null);setSelected(null);setScreen("home")}}/>;
   return <main className={`game-shell theme-${screen}`}><div className="liquid-bg"><i/><i/><i/></div><AppHeader screen={screen} setScreen={setScreen}/><div className="screen-frame" key={screen}>{content}</div><footer><span>Design prototype · Phase 2</span><span>Biology first · outcome precomputed</span></footer></main>;
 }
