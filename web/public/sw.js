@@ -1,11 +1,11 @@
 const CACHE_VERSION = "microbial-mayhem-v0.4.0";
 const CORE = [
-  "/",
-  "/manifest.webmanifest",
-  "/favicon.svg",
-  "/data/manifest.v2.json",
-  "/data/fighters-core.v2.json",
-  "/data/search-index.v2.json"
+  "./",
+  "./manifest.webmanifest",
+  "./favicon.svg",
+  "./data/manifest.v2.json",
+  "./data/fighters-core.v2.json",
+  "./data/search-index.v2.json"
 ];
 
 self.addEventListener("install", (event) => {
@@ -21,5 +21,5 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(fetch(event.request).then((response) => {
     if (response.ok) caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, response.clone()));
     return response;
-  }).catch(() => caches.match(event.request).then((cached) => cached || (event.request.mode === "navigate" ? caches.match("/") : undefined))));
+  }).catch(() => caches.match(event.request).then((cached) => cached || (event.request.mode === "navigate" ? caches.match("./") : undefined))));
 });

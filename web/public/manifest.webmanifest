@@ -2,13 +2,13 @@
   "name": "Microbial Mayhem",
   "short_name": "Mayhem",
   "description": "Biologically grounded bacterial battles that work offline.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#061411",
   "theme_color": "#071a16",
   "orientation": "any",
   "categories": ["games", "education"],
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }

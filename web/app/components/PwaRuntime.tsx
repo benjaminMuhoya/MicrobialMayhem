@@ -26,7 +26,7 @@ export async function loadPreference<T>(key: string): Promise<T | undefined> {
 export function PwaRuntime() {
   useEffect(() => {
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => undefined);
+      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => undefined);
     }
   }, []);
   return null;
