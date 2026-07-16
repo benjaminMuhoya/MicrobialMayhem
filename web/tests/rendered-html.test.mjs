@@ -27,6 +27,10 @@ test("prototype includes six screens and responsive accessibility rules", async 
   for (const screen of ["home", "fighter", "colony", "arsenal", "environment", "preview", "arena", "results"]) assert.match(page, new RegExp(`screen-${screen}`));
   assert.match(page, /aria-label="Search bacterial fighters"/);
   assert.match(page, /aria-expanded/);
+  assert.match(page, /Show different bacteria/);
+  assert.match(page, /That is why we need more research/);
+  assert.match(page, /Biological interpretation/);
+  for (const motif of ["motif-cold", "motif-hot", "motif-salty", "motif-alkaline", "motif-acidic", "motif-in-the-presence-of-antibiotics", "motif-neutral"]) assert.match(page + css, new RegExp(motif));
   assert.match(css, /@media\(max-width:620px\)/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /focus-visible/);

@@ -5,31 +5,31 @@ Confirmed source-of-truth references: `microbial_mayhem_main.py`, `bacterial_cat
 ## Navigation and setup
 
 - [x] Eight principal states exist in the web shell.
-- [ ] Start must reset mode-specific state and sample a fresh catalog roster.
-- [ ] Search must match full name, display name, genus, strain, and supported identifiers.
-- [ ] Reshuffle must replace the visible sample without losing locked fighters.
-- [ ] Solo confirmation must choose a different catalog opponent, seeded opponent CFU, and independent arsenal decision.
-- [ ] Local versus must lock Player 1, reject that catalog ID for Player 2, then repeat colony and arsenal setup for each player before one shared environment.
-- [ ] Back, rematch, change-fighters, and main-menu behavior must match the Python state transitions.
+- [x] Start resets mode-specific state and samples a fresh catalog roster.
+- [x] Search matches full name, display name, genus, strain, and supported identifiers.
+- [x] Reshuffle replaces the visible sample without losing locked fighters.
+- [x] Solo confirmation chooses a different catalog opponent, seeded opponent CFU, and independent arsenal decision.
+- [x] Local versus locks Player 1, rejects that catalog ID for Player 2, then repeats colony and arsenal setup for each player before one shared environment.
+- [x] Rematch, change-fighters, and main-menu behavior use isolated state transitions.
 
 ## Biology and presentation
 
-- [ ] Fighter details must expose morphology, habitat, colony appearance, BGC accessions, products, activities, trait evidence, description/fact, and provenance.
-- [ ] Recorded evidence and procedural appearance must be explicitly separated.
-- [ ] Every environment card and arena must use the Python environment-specific motif.
-- [ ] Preview labels must be mode-aware and show actual chosen fighter/setup data.
-- [ ] Results must show Python-equivalent headline, score cards, component explanations, environmental interpretation, biological note, and missing-evidence research wording.
+- [x] Fighter details expose morphology, habitat, colony appearance, BGC accessions, products, activities, trait evidence, description/fact, and provenance.
+- [x] Recorded evidence and procedural appearance are explicitly separated.
+- [x] Every environment card and arena uses a Python-derived environment-specific motif.
+- [x] Preview labels are mode-aware and show actual chosen fighter/setup data.
+- [x] Results show Python-equivalent headline, score cards, component explanations, environmental interpretation, biological note, and missing-evidence research wording.
 
 ## Battle behavior
 
 - [x] Scoring is precomputed before the arena and matches six fixed Python fixtures.
-- [ ] The deterministic eight-second cue sequence must restore entrance, anticipation, attack, defense, counter, dodge, abilities, arena pressure, pause, finish, and resolution.
-- [ ] Health must remain competitive until the final 18 percent of the timeline.
-- [ ] Natural completion and Skip must enter the same stored result exactly once.
-- [ ] Unmount/rematch must destroy timers, tweens, sounds, and listeners.
+- [x] The deterministic eight-second cue sequence restores entrance, anticipation, attack, defense, counter, dodge, abilities, arena pressure, pause, finish, and resolution.
+- [x] Health remains competitive until the final 18 percent of the timeline.
+- [x] Natural completion and Skip enter the same stored result exactly once.
+- [x] Unmount/rematch destroys Phaser timers, tweens, and listeners.
 
 ## Verification gate
 
-- [ ] One-player home → results → rematch/change fighters/main menu passes in a browser.
-- [ ] Two-player home → both setups → results → rematch/change fighters/main menu passes in a browser.
-- [ ] Python tests, TypeScript unit/parity tests, browser tests, and production build all pass.
+- [x] One-player home → results → rematch/change fighters/main menu passes in a browser.
+- [x] Two-player home → both setups → results → rematch/change fighters/main menu passes in a browser.
+- [x] Python tests, TypeScript unit/parity tests, and production build pass; Playwright cases are present and discovered.

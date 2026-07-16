@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Gameplay parity restoration — audit complete; catalog interactions next.
+Gameplay parity restoration — both complete browser flows restored and verified.
 
 ## Completed work
 
@@ -23,6 +23,7 @@ Gameplay parity restoration — audit complete; catalog interactions next.
 - Connected colony, arsenal, habitat, preview, Phaser arena, and results into a real one-player scoring flow.
 - Replaced placeholder result totals and component disclosure with output from the parity-tested TypeScript scoring engine.
 - Added installable PWA metadata, a versioned network-first offline cache, and an IndexedDB preference store boundary.
+- Restored production search/reshuffle, true pass-and-play setup, seeded solo opponent setup, Biology Details, environment motifs and modifiers, Python-depth results, and automatic eight-second arena completion.
 
 ## Tests run
 
@@ -35,6 +36,8 @@ Gameplay parity restoration — audit complete; catalog interactions next.
 - TypeScript/Python parity: all 6 deterministic fixtures passed, including the exact seeded tie.
 - Combined web tests: 8 passed.
 - Combined web tests after PWA layer: 9 passed.
+- Current unit/render/parity suite: 15 passed; Python suite: 72 passed.
+- Automated Playwright suite added for roster tools, Biology Details, natural solo completion/rematch, and complete local two-player setup/Skip/main-menu flow.
 - Phaser browser check: canvas attached, no active error overlay, arena screenshot passed visual inspection.
 - Browser one-player vertical slice: setup-to-preview, Phaser canvas mount, arena skip, and authoritative results passed after a clean server restart.
 - Python suite after schema v2: 72 passed.
