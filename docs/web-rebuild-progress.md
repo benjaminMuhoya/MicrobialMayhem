@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 5 — Lightweight production data (core contract complete; authoritative flow integration remains).
+Phase 4 — Responsive authoritative flow (one-player vertical slice complete; local two-player orchestration remains).
 
 ## Completed work
 
@@ -20,6 +20,8 @@ Phase 5 — Lightweight production data (core contract complete; authoritative f
 - Added the first Phaser living-arena scene with procedural cells, environmental particles, elastic entry, attack anticipation, impact, recoil, and camera response.
 - Upgraded future SQLite builds to schema v2 so cell shape and motility survive production storage while the loader remains compatible with schema v1.
 - Built and validated a 384-fighter web core roster, compact search index, version manifest, and SHA-256 checksums from developer-retained source data.
+- Connected colony, arsenal, habitat, preview, Phaser arena, and results into a real one-player scoring flow.
+- Replaced placeholder result totals and component disclosure with output from the parity-tested TypeScript scoring engine.
 
 ## Tests run
 
@@ -32,6 +34,7 @@ Phase 5 — Lightweight production data (core contract complete; authoritative f
 - TypeScript/Python parity: all 6 deterministic fixtures passed, including the exact seeded tie.
 - Combined web tests: 8 passed.
 - Phaser browser check: canvas attached, no active error overlay, arena screenshot passed visual inspection.
+- Browser one-player vertical slice: setup-to-preview, Phaser canvas mount, arena skip, and authoritative results passed after a clean server restart.
 - Python suite after schema v2: 72 passed.
 - Web catalog validator: passed; 384 stable IDs, 329 known cell shapes, 313 known motility records.
 - Core roster + index + manifest: approximately 465 KiB uncompressed.
@@ -78,12 +81,11 @@ Phase 5 — Lightweight production data (core contract complete; authoritative f
 
 ## Remaining work
 
-1. Replace prototype-only state and copy with the authoritative one-player/two-player setup flow.
-2. Add the arsenal and environment preparation screens and connect results to real score breakdowns.
+1. Replace the three-item prototype roster with the compact production catalog and complete pass-and-play orchestration.
+2. Make preview and arena consume both selected fighters and the complete authoritative result.
 3. Expand the Phaser scene to consume the authoritative result and eight-second cue timeline.
-4. Build compact catalog v2 with retained morphology/motility and web shards.
-5. Add PWA/offline storage, browser E2E, responsive, visual, performance, and data tests.
-6. Deploy the stable web release, then add the Capacitor Android wrapper.
+4. Add PWA/offline storage, browser E2E, responsive, visual, performance, and data tests.
+5. Deploy the stable web release, then add the Capacitor Android wrapper.
 
 ## Known risks
 
@@ -92,5 +94,6 @@ Phase 5 — Lightweight production data (core contract complete; authoritative f
 - Python’s seeded random sequence must be reproduced exactly or captured explicitly for cross-language score parity.
 - Mobile Safari audio unlock/storage eviction and Android lifecycle behaviour require device validation.
 - Phaser currently creates a large client chunk; production work must measure and reduce the initial payload through scene-level lazy loading and bundle analysis.
+- Vinext hot reload can enter a multiple-renderer state after Phaser scene edits; validation therefore includes a clean-server browser pass.
 - The current dependency tree reports transitive audit findings; they require review without applying breaking automated upgrades.
 - Source-data and asset licensing must be confirmed before public release.

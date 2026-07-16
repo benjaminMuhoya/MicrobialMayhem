@@ -24,7 +24,7 @@ test("server-renders the Microbial Mayhem design prototype", async () => {
 
 test("prototype includes six screens and responsive accessibility rules", async () => {
   const [page, css] = await Promise.all([readFile(new URL("app/page.tsx", root), "utf8"), readFile(new URL("app/globals.css", root), "utf8")]);
-  for (const screen of ["home", "fighter", "colony", "preview", "arena", "results"]) assert.match(page, new RegExp(`screen-${screen}`));
+  for (const screen of ["home", "fighter", "colony", "arsenal", "environment", "preview", "arena", "results"]) assert.match(page, new RegExp(`screen-${screen}`));
   assert.match(page, /aria-label="Search bacterial fighters"/);
   assert.match(page, /aria-expanded/);
   assert.match(css, /@media\(max-width:620px\)/);
