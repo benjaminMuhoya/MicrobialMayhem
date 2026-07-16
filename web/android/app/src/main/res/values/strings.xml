@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Microbial Mayhem</string>
+    <string name="title_activity_main">Microbial Mayhem</string>
+    <string name="package_name">com.microbialmayhem.game</string>
+    <string name="custom_url_scheme">com.microbialmayhem.game</string>
+</resources>
