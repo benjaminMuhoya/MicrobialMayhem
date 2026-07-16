@@ -28,7 +28,20 @@ def test_sqlite_round_trip_preserves_runtime_fields(tmp_path):
     assert loaded[0]["catalog_id"] == original["catalog_id"]
     assert loaded[0]["accessions"] == ["BGC1"]
     assert loaded[0]["products"] == ["product one"]
+    assert loaded[0]["cell_shape"] == ""
+    assert loaded[0]["motility"] == ""
     assert metadata["playable_fighter_count"] == 1
+
+
+def test_sqlite_v2_preserves_morphology_and_motility(tmp_path):
+    path = tmp_path / "catalog.sqlite3"
+    original = fighter("bacdive:shape", "DSM SHAPE")
+    original.update({"cell_shape": "curved rod", "motility": "motile"})
+    write_catalog_database(path, [original])
+    loaded, metadata = load_catalog_database(path)
+    assert metadata["schema_version"] == 2
+    assert loaded[0]["cell_shape"] == "curved rod"
+    assert loaded[0]["motility"] == "motile"
 
 
 def test_sqlite_normalizes_repeated_enrichment_profiles(tmp_path):

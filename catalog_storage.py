@@ -7,7 +7,7 @@ from pathlib import Path
 
 from catalog_deduplication import deduplicate_fighters
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 PROFILE_FIELDS = ("accessions", "products", "activities", "traits")
 FIGHTER_FIELDS = (
     "catalog_id",
@@ -23,6 +23,8 @@ FIGHTER_FIELDS = (
     "source",
     "bacdive_id",
     "isolation_habitat",
+    "cell_shape",
+    "motility",
 )
 
 
@@ -71,7 +73,9 @@ def write_catalog_database(path: Path, fighters: list[dict], metadata: dict | No
                 curious_fact TEXT NOT NULL,
                 source TEXT NOT NULL,
                 bacdive_id TEXT NOT NULL,
-                isolation_habitat TEXT NOT NULL
+                isolation_habitat TEXT NOT NULL,
+                cell_shape TEXT NOT NULL,
+                motility TEXT NOT NULL
             ) WITHOUT ROWID;
             CREATE INDEX fighters_name_idx ON fighters(full_name COLLATE NOCASE);
             CREATE INDEX fighters_genus_idx ON fighters(genus COLLATE NOCASE);
@@ -94,7 +98,7 @@ def write_catalog_database(path: Path, fighters: list[dict], metadata: dict | No
             values = [str(fighter.get(field, "") or "") for field in FIGHTER_FIELDS]
             fighter_rows.append((values[0], profile_id, sort_order, *values[1:]))
         connection.executemany(
-            "INSERT INTO fighters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO fighters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             fighter_rows,
         )
         db_metadata = dict(metadata or {})
@@ -131,9 +135,10 @@ def load_catalog_database(path: Path) -> tuple[list[dict], dict]:
             JOIN enrichment_profiles AS p USING (profile_id)
             ORDER BY f.sort_order
         """
+        available_columns = {row[1] for row in connection.execute("PRAGMA table_info(fighters)")}
         fighters = []
         for row in connection.execute(query):
-            fighter = {field: row[field] for field in FIGHTER_FIELDS}
+            fighter = {field: row[field] if field in available_columns else "Unknown" for field in FIGHTER_FIELDS}
             for field in PROFILE_FIELDS:
                 fighter[field] = json.loads(row[field])
             fighters.append(fighter)

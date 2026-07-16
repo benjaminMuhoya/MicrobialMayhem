@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 3 — Full gameplay redesign (rules and arena foundation complete; authoritative flow integration next).
+Phase 5 — Lightweight production data (core contract complete; authoritative flow integration remains).
 
 ## Completed work
 
@@ -18,6 +18,8 @@ Phase 3 — Full gameplay redesign (rules and arena foundation complete; authori
 - Ported the scoring engine, score components, environment logic, colony formula, defensive/activity rules, and Python-compatible seeded random generator to TypeScript.
 - Added a typed platform-neutral game session model that calculates the result before preview/animation.
 - Added the first Phaser living-arena scene with procedural cells, environmental particles, elastic entry, attack anticipation, impact, recoil, and camera response.
+- Upgraded future SQLite builds to schema v2 so cell shape and motility survive production storage while the loader remains compatible with schema v1.
+- Built and validated a 384-fighter web core roster, compact search index, version manifest, and SHA-256 checksums from developer-retained source data.
 
 ## Tests run
 
@@ -30,6 +32,9 @@ Phase 3 — Full gameplay redesign (rules and arena foundation complete; authori
 - TypeScript/Python parity: all 6 deterministic fixtures passed, including the exact seeded tie.
 - Combined web tests: 8 passed.
 - Phaser browser check: canvas attached, no active error overlay, arena screenshot passed visual inspection.
+- Python suite after schema v2: 72 passed.
+- Web catalog validator: passed; 384 stable IDs, 329 known cell shapes, 313 known motility records.
+- Core roster + index + manifest: approximately 465 KiB uncompressed.
 
 ## Failures
 
@@ -64,6 +69,12 @@ Phase 3 — Full gameplay redesign (rules and arena foundation complete; authori
 - `web/app/game/session.ts`
 - `web/app/components/PhaserArena.tsx`
 - `web/tests/scoring-parity.test.mjs`
+- `catalog_storage.py`
+- `scripts/build_web_catalog.py`
+- `scripts/validate_web_catalog.py`
+- `tests/test_catalog_storage.py`
+- `web/public/data/`
+- `docs/web-catalog-contract.md`
 
 ## Remaining work
 
