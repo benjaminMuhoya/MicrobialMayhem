@@ -32,6 +32,7 @@ test("prototype includes six screens and responsive accessibility rules", async 
   assert.match(page, /Biological interpretation/);
   assert.doesNotMatch(page, /Biology first|Outcome precomputed|8\.0s|animation dramatizes/i);
   for (const shape of ["coccus", "rod", "vibrio", "spiral", "filament", "irregular"]) assert.match(page + css, new RegExp(`microbe--${shape}`));
+  for (const detail of ["microbe__face", "microbe__pili", "microbe__capsule", "microbe__satellites"]) assert.match(page + css, new RegExp(detail));
   for (const motif of ["motif-cold", "motif-hot", "motif-salty", "motif-alkaline", "motif-acidic", "motif-in-the-presence-of-antibiotics", "motif-neutral"]) assert.match(page + css, new RegExp(motif));
   assert.match(css, /@media\(max-width:620px\)/);
   assert.match(css, /prefers-reduced-motion:reduce/);
