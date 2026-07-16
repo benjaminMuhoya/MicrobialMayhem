@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 2 — Radical visual direction and interactive prototype (complete; preparing Phase 3).
+Phase 3 — Full gameplay redesign (rules and arena foundation complete; authoritative flow integration next).
 
 ## Completed work
 
@@ -15,6 +15,9 @@ Phase 2 — Radical visual direction and interactive prototype (complete; prepar
 - Defined the living-microscopic-arena design system.
 - Built an interactive responsive prototype for home, fighter selection, colony selection, battle preview, arena, and results.
 - Added progressive scientific disclosure on results and a visibly reactive CFU density control.
+- Ported the scoring engine, score components, environment logic, colony formula, defensive/activity rules, and Python-compatible seeded random generator to TypeScript.
+- Added a typed platform-neutral game session model that calculates the result before preview/animation.
+- Added the first Phaser living-arena scene with procedural cells, environmental particles, elastic entry, attack anticipation, impact, recoil, and camera response.
 
 ## Tests run
 
@@ -24,6 +27,9 @@ Phase 2 — Radical visual direction and interactive prototype (complete; prepar
 - Web production build: passed.
 - Web prototype tests: 2 passed.
 - Browser checks: desktop home and colony layouts passed; 390 × 844 portrait home layout passed; navigation and colony interaction passed.
+- TypeScript/Python parity: all 6 deterministic fixtures passed, including the exact seeded tie.
+- Combined web tests: 8 passed.
+- Phaser browser check: canvas attached, no active error overlay, arena screenshot passed visual inspection.
 
 ## Failures
 
@@ -52,12 +58,18 @@ Phase 2 — Radical visual direction and interactive prototype (complete; prepar
 - `web/app/globals.css`
 - `web/app/layout.tsx`
 - `web/tests/rendered-html.test.mjs`
+- `web/app/game/types.ts`
+- `web/app/game/python-random.ts`
+- `web/app/game/scoring.ts`
+- `web/app/game/session.ts`
+- `web/app/components/PhaserArena.tsx`
+- `web/tests/scoring-parity.test.mjs`
 
 ## Remaining work
 
-1. Port rules and session models to TypeScript with fixture parity.
-2. Replace prototype-only state and copy with authoritative game flow.
-3. Add responsive full gameplay flow and Phaser arena.
+1. Replace prototype-only state and copy with the authoritative one-player/two-player setup flow.
+2. Add the arsenal and environment preparation screens and connect results to real score breakdowns.
+3. Expand the Phaser scene to consume the authoritative result and eight-second cue timeline.
 4. Build compact catalog v2 with retained morphology/motility and web shards.
 5. Add PWA/offline storage, browser E2E, responsive, visual, performance, and data tests.
 6. Deploy the stable web release, then add the Capacitor Android wrapper.
@@ -68,4 +80,6 @@ Phase 2 — Radical visual direction and interactive prototype (complete; prepar
 - SQLite schema v1 drops cell shape and motility computed by the BacDive builder.
 - Python’s seeded random sequence must be reproduced exactly or captured explicitly for cross-language score parity.
 - Mobile Safari audio unlock/storage eviction and Android lifecycle behaviour require device validation.
+- Phaser currently creates a large client chunk; production work must measure and reduce the initial payload through scene-level lazy loading and bundle analysis.
+- The current dependency tree reports transitive audit findings; they require review without applying breaking automated upgrades.
 - Source-data and asset licensing must be confirmed before public release.

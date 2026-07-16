@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PhaserArena } from "./components/PhaserArena";
 
 type Screen = "home" | "fighter" | "colony" | "preview" | "arena" | "results";
 
@@ -133,7 +134,7 @@ function Preview({ go }: { go: (screen: Screen) => void }) {
 
 function Arena({ go }: { go: (screen: Screen) => void }) {
   return <section className="scene arena-scene" data-testid="screen-arena"><div className="heat-haze"/><div className="arena-top"><div><small>You · <i>B. cereus</i></small><span><b style={{width:"64%"}}/></span></div><p>HOT SPRING <small>78°C</small></p><div><small>Rival · <i>P. cryonix</i></small><span><b style={{width:"38%"}}/></span></div></div>
-    <div className="battlefield"><div className="battle-fighter battle-fighter--left"><Microbe tone="coral"/><span>Thermocin surge</span></div><div className="impact-bloom"><i/><i/><i/></div><div className="battle-fighter battle-fighter--right"><Microbe tone="mint"/><span>Membrane guard</span></div></div>
+    <PhaserArena />
     <div className="battle-caption"><span>05.8s</span><p><b>Environment pressure</b> · Heat adaptation is shifting the momentum.</p><button onClick={() => go("results")}>Skip →</button></div>
   </section>;
 }
