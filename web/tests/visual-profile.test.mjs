@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fighterVisualProfile } from "../app/game/visual-profile.ts";
+import { differentiatedDuelProfiles, fighterVisualProfile } from "../app/game/visual-profile.ts";
 
 const fighter=(id,cellShape,motility)=>({catalogId:id,fullName:`Microbe ${id}`,cellShape,motility,accessions:[],products:[],activities:[],traits:[]});
 
@@ -18,4 +18,14 @@ test("fighters without morphology still receive diverse stable identities",()=>{
   assert.ok(new Set(profiles.map(profile=>`${profile.primary}-${profile.secondary}`)).size>=8);
   assert.ok(new Set(profiles.map(profile=>profile.expression)).size>=4);
   assert.ok(new Set(profiles.map(profile=>profile.appendage)).size>=4);
+  assert.ok(new Set(profiles.map(profile=>profile.texture)).size>=4);
+  assert.ok(new Set(profiles.map(profile=>profile.archetype)).size>=4);
+});
+
+test("similar opponents receive distinct presentation without changing fighter data",()=>{
+  const left=fighter("same-a","rod","motile"),right=fighter("same-b","rod","motile");
+  const [leftProfile,rightProfile]=differentiatedDuelProfiles(left,right);
+  assert.notEqual(`${leftProfile.shape}-${leftProfile.primary}-${leftProfile.appendage}`,`${rightProfile.shape}-${rightProfile.primary}-${rightProfile.appendage}`);
+  assert.equal(left.cellShape,"rod");
+  assert.equal(right.cellShape,"rod");
 });

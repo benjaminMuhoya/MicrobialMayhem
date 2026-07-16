@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import { BATTLE_CUES, BATTLE_DURATION_MS, CompletionGate, battleHealth } from "../game/battle-timeline";
 import type { BattleResult, Environment, Fighter } from "../game/types";
-import { duelShapeOrder, fighterVisualProfile } from "../game/visual-profile";
+import { differentiatedDuelProfiles, fighterVisualProfile } from "../game/visual-profile";
 
-export function PhaserArena({ reducedMotion=false, environment, player, opponent, result, seed, onComplete }: { reducedMotion?:boolean;environment:Environment;player:Fighter;opponent:Fighter;result:BattleResult;seed:number;onComplete:()=>void }) {
-  const host=useRef<HTMLDivElement>(null); const callback=useRef(onComplete); callback.current=onComplete;
-  useEffect(()=>{let game:import("phaser").Game|undefined,disposed=false;const gate=new CompletionGate(),playerProfile=fighterVisualProfile(player),rawOpponentProfile=fighterVisualProfile(opponent),opponentProfile=rawOpponentProfile.shape===playerProfile.shape?{...rawOpponentProfile,shape:duelShapeOrder[(duelShapeOrder.indexOf(rawOpponentProfile.shape)+3)%duelShapeOrder.length]}:rawOpponentProfile;
+export function PhaserArena({ paused=false,reducedMotion=false, environment, player, opponent, result, seed, onComplete }: { paused?:boolean;reducedMotion?:boolean;environment:Environment;player:Fighter;opponent:Fighter;result:BattleResult;seed:number;onComplete:()=>void }) {
+  const host=useRef<HTMLDivElement>(null); const gameRef=useRef<import("phaser").Game>(); const pausedRef=useRef(paused); const callback=useRef(onComplete); callback.current=onComplete;
+  useEffect(()=>{pausedRef.current=paused;const game=gameRef.current;if(!game)return;if(paused)game.scene.pause("BattleScene");else game.scene.resume("BattleScene")},[paused]);
+  useEffect(()=>{let game:import("phaser").Game|undefined,disposed=false;const gate=new CompletionGate(),[playerProfile,opponentProfile]=differentiatedDuelProfiles(player,opponent);
     void import("phaser").then(({default:Phaser})=>{if(disposed||!host.current)return;
       class BattleScene extends Phaser.Scene {
         left!:Phaser.GameObjects.Container;right!:Phaser.GameObjects.Container;label!:Phaser.GameObjects.Text;shield!:Phaser.GameObjects.Arc;impact!:Phaser.GameObjects.Arc;leftBar!:Phaser.GameObjects.Rectangle;rightBar!:Phaser.GameObjects.Rectangle;
@@ -31,8 +32,8 @@ export function PhaserArena({ reducedMotion=false, environment, player, opponent
           if(kind==="finish"){this.announce(result.winner==="tie"?"Final clash!":"Finishing action!");const targets=result.winner==="A"?[this.left]:result.winner==="B"?[this.right]:[this.left,this.right];this.tweens.add({targets,scale:1.22,duration:180,yoyo:true});this.hit(this.impact)}
           if(kind==="resolution"){this.leftBar.width=300*battleHealth(1,result.winner)[0]/100;this.rightBar.width=300*battleHealth(1,result.winner)[1]/100;this.announce("Battle resolved")}}
       }
-      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current!,transparent:true,width:1000,height:460,scene:BattleScene,scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},render:{antialias:true,pixelArt:false},audio:{noAudio:true}})
-    });return()=>{disposed=true;game?.destroy(true)}
-  },[reducedMotion,environment,player.catalogId,opponent.catalogId,result.winner,seed]);
+      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current!,transparent:true,width:1000,height:460,scene:BattleScene,scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},render:{antialias:true,pixelArt:false},audio:{noAudio:true}});gameRef.current=game
+    });const visibility=()=>{const active=gameRef.current;if(!active)return;if(document.hidden)active.scene.pause("BattleScene");else if(!pausedRef.current)active.scene.resume("BattleScene")};document.addEventListener("visibilitychange",visibility);return()=>{disposed=true;document.removeEventListener("visibilitychange",visibility);gameRef.current=undefined;game?.destroy(true)}
+  },[reducedMotion,environment,player,opponent,result.winner,seed]);
   return <div ref={host} className={`phaser-arena arena-${environment.replaceAll(" ","-").toLowerCase()}`} role="img" aria-label={`Scripted microscopic battle between ${player.fullName} and ${opponent.fullName}`}/>;
 }
