@@ -25,9 +25,19 @@ const battleFighters: Fighter[] = [
   {catalogId:"fixture:psychrobacter",fullName:"Psychrobacter cryonix ICE-2",strain:"ICE-2",accessions:["BGC-COLD-1"],products:["cryoprotectin"],activities:["siderophore"],traits:[{trait:"Cryophile",evidenceLevel:"Direct evidence",field:"organism_name",explanation:"Cold-adaptation evidence."}],description:"A cold-adapted database rival.",cellShape:"coccus",motility:"non-motile"},
 ];
 
-function Microbe({ tone = "mint", compact = false }: { tone?: string; compact?: boolean }) {
+function microbeShape(shape?: string) {
+  const value=(shape||"").toLowerCase();
+  if(value.includes("cocc")||value.includes("spher"))return "coccus";
+  if(value.includes("vibr")||value.includes("curv")||value.includes("comma"))return "vibrio";
+  if(value.includes("spir")||value.includes("spiro")||value.includes("helix"))return "spiral";
+  if(value.includes("filament")||value.includes("hyph")||value.includes("branch"))return "filament";
+  if(value.includes("rod")||value.includes("bacill"))return "rod";
+  return "irregular";
+}
+
+function Microbe({ tone = "mint", compact = false, shape }: { tone?: string; compact?: boolean; shape?: string }) {
   return (
-    <div className={`microbe microbe--${tone} ${compact ? "microbe--compact" : ""}`} aria-hidden="true">
+    <div className={`microbe microbe--${tone} microbe--${microbeShape(shape)} ${compact ? "microbe--compact" : ""}`} aria-hidden="true">
       <span className="microbe__membrane" />
       <span className="microbe__core" />
       <span className="microbe__spark microbe__spark--one" />
@@ -60,9 +70,9 @@ function Home({ start, mode, setMode }: { start: () => void; mode: GameMode; set
   return (
     <section className="scene home-scene" data-testid="screen-home">
       <div className="home-copy">
-        <p className="eyebrow">A microscopic battle of adaptation</p>
-        <h1>Small cells.<br/><span>Big chemistry.</span></h1>
-        <p className="lede">Build a living colony, choose an extreme habitat, and discover which bacterium is biologically prepared to thrive.</p>
+        <p className="eyebrow">A microscopic battle to survive</p>
+        <h1>Microscopic Gladiators<br/><span>Meet in the Petri Dish</span></h1>
+        <p className="lede">Build a living colony, choose the arena, and discover which bacterium is biologically prepared to thrive.</p>
         <div className="mode-picker" aria-label="Choose game mode">
           <button className={`mode-card ${mode==="1_player"?"is-selected":""}`} onClick={()=>setMode("1_player")}><span>01</span><b>One player</b><small>Face a database rival</small></button>
           <button className={`mode-card ${mode==="2_players"?"is-selected":""}`} onClick={()=>setMode("2_players")}><span>02</span><b>Two players</b><small>Pass-and-play locally</small></button>
@@ -71,7 +81,7 @@ function Home({ start, mode, setMode }: { start: () => void; mode: GameMode; set
       </div>
       <div className="hero-dish" aria-label="Animated microscopic bacterial colony">
         <div className="dish-orbit dish-orbit--one" /><div className="dish-orbit dish-orbit--two" />
-        <Microbe tone="coral" /><Microbe tone="mint" compact />
+        <Microbe tone="coral" shape="rod" /><Microbe tone="mint" shape="coccus" compact />
         <div className="specimen-tag"><span>LIVE SPECIMEN</span><b>Culture #MM-042</b></div>
       </div>
     </section>
@@ -92,13 +102,13 @@ function FighterScreen({ fighters, roster, selected, locked, activePlayer, loadi
           <p className="search-status" role="status">{loading?"Loading production catalog…":query.trim()?matches.length?`Found ${matches.length} match(es) for '${query}'.`:`The database went quiet on '${query}'. Try another genus, species, or strain.`:`Showing ${roster.length} random database-derived bacteria.`}</p>
           <div className="roster-list">
             {shown.slice(0,30).map((item, index) => {const unavailable=activePlayer===2&&locked?.catalogId===item.catalogId; return <button key={item.catalogId} disabled={unavailable} aria-disabled={unavailable} onClick={() => onSelect(item)} className={selected?.catalogId===item.catalogId?"is-selected":unavailable?"is-locked":""}>
-              <Microbe tone={index%3===0?"coral":index%3===1?"mint":"violet"} compact /><span><i>{item.fullName}</i><small>{item.strain||"Strain not recorded"} · {item.accessions.length} BGCs{unavailable?" · Player 1 locked":""}</small></span><b>{unavailable?"Locked":"→"}</b>
+              <Microbe tone={index%3===0?"coral":index%3===1?"mint":"violet"} shape={item.cellShape} compact /><span><i>{item.fullName}</i><small>{item.strain||"Strain not recorded"} · {item.accessions.length} BGCs{unavailable?" · Player 1 locked":""}</small></span><b>{unavailable?"Locked":"→"}</b>
             </button>})}
           </div>
           {query.trim()?<button className="quiet-action" onClick={()=>{setQuery("");onResetRoster()}}>Reset to random roster</button>:<button className="quiet-action" onClick={onShuffle}>Show different bacteria</button>}
         </aside>
         {fighter?<article className="fighter-focus">
-          <div className="fighter-stage"><div className="focus-ring"/><Microbe tone={activePlayer===1?"coral":"mint"}/><span className="recorded-pill">Recorded morphology · procedural styling</span></div>
+          <div className="fighter-stage"><div className="focus-ring"/><Microbe tone={activePlayer===1?"coral":"mint"} shape={fighter.cellShape}/><span className="recorded-pill">Recorded morphology · procedural styling</span></div>
           <div className="fighter-info"><p className="eyebrow">Selected fighter</p><h3><i>{fighter.fullName}</i></h3><p className="strain">strain {fighter.strain||"not recorded"}</p>
             <div className="fact-row"><span><small>Morphology</small><b>{fighter.cellShape||"Not recorded"} · {fighter.motility||"motility not recorded"}</b></span><span><small>Habitat</small><b>{fighter.habitat||"Not recorded"}</b></span><span><small>Known BGCs</small><b>{fighter.accessions.length} documented</b></span></div>
             <div className="ability"><span className="ability__icon">✦</span><span><small>Signature chemistry</small><b>Documented biosynthetic activity</b></span><button onClick={()=>setDetails(true)}>Biology details</button></div>
@@ -133,7 +143,7 @@ function Colony({ onConfirm, cfu, setCfu, mode, setupPlayer }: { onConfirm: () =
 }
 
 function Arsenal({onConfirm,active,setActive,fighter,mode,setupPlayer}:{onConfirm:()=>void;active:boolean;setActive:(value:boolean)=>void;fighter:Fighter;mode:GameMode;setupPlayer:1|2}){
-  const documented=fighter.accessions.length>0; return <section className="scene prep-scene" data-testid="screen-arsenal"><div className="screen-heading"><div><p className="eyebrow">{mode==="2_players"?`Player ${setupPlayer} · `:""}biosynthetic preparation</p><h2>{documented?"Activate documented chemistry?":"No documented arsenal available"}</h2></div><p>{fighter.accessions.length} MIBiG record(s) are available for this fighter.</p></div><div className="gene-stage"><Microbe tone="violet"/><div className={`gene-chain ${active&&documented?"is-active":""}`}>{fighter.accessions.slice(0,5).map((id,i)=><i key={id}>{id||`BGC ${i+1}`}</i>)}</div></div><div className="prep-controls"><p><b>{active&&documented?"Arsenal activated":"Arsenal dormant"}</b><span>{active&&documented?"Documented clusters contribute up to +5 offense points.":documented?"Known activity remains documented, but BGC accessions add no arsenal points.":"No documented BGC is available, so the game does not imply an arsenal."}</span></p><div className="binary-choice"><button disabled={!documented} className={active&&documented?"is-selected":""} onClick={()=>setActive(true)}>Activate</button><button className={!active||!documented?"is-selected":""} onClick={()=>setActive(false)}>Keep dormant</button></div><button className="primary-action" onClick={onConfirm}>Confirm Player {setupPlayer} preparation <span>→</span></button></div></section>
+  const documented=fighter.accessions.length>0; return <section className="scene prep-scene" data-testid="screen-arsenal"><div className="screen-heading"><div><p className="eyebrow">{mode==="2_players"?`Player ${setupPlayer} · `:""}biosynthetic preparation</p><h2>{documented?"Activate documented chemistry?":"No documented arsenal available"}</h2></div><p>{fighter.accessions.length} MIBiG record(s) are available for this fighter.</p></div><div className="gene-stage"><Microbe tone="violet" shape={fighter.cellShape}/><div className={`gene-chain ${active&&documented?"is-active":""}`}>{fighter.accessions.slice(0,5).map((id,i)=><i key={id}>{id||`BGC ${i+1}`}</i>)}</div></div><div className="prep-controls"><p><b>{active&&documented?"Arsenal activated":"Arsenal dormant"}</b><span>{active&&documented?"Documented clusters contribute up to +5 offense points.":documented?"Known activity remains documented, but BGC accessions add no arsenal points.":"No documented BGC is available, so the game does not imply an arsenal."}</span></p><div className="binary-choice"><button disabled={!documented} className={active&&documented?"is-selected":""} onClick={()=>setActive(true)}>Activate</button><button className={!active||!documented?"is-selected":""} onClick={()=>setActive(false)}>Keep dormant</button></div><button className="primary-action" onClick={onConfirm}>Confirm Player {setupPlayer} preparation <span>→</span></button></div></section>
 }
 
 const environments:Environment[]=["Neutral","Salty","Alkaline","Hot","Cold","Acidic","In the presence of antibiotics"];
@@ -146,7 +156,7 @@ function Preview({ go, mode, player, opponent, playerCfu, opponentCfu, playerArs
   const pEnv=result.player.components.find(c=>c.name==="Environment")?.value||0; const oEnv=result.opponent.components.find(c=>c.name==="Environment")?.value||0;
   return <section className="scene preview-scene" data-testid="screen-preview"><div className="arena-aura"/>
     <div className="screen-heading centered"><p className="eyebrow">{environment}</p><h2>Ready to culture chaos?</h2><p>Actual environment modifiers: Player 1 <b>{pEnv>=0?"+":""}{pEnv}</b> · {mode==="2_players"?"Player 2":"Automated Rival"} <b>{oEnv>=0?"+":""}{oEnv}</b>.</p></div>
-    <div className="versus"><article><span className="player-label">{mode==="2_players"?"Player 1":"You"}</span><Microbe tone="coral"/><h3><i>{player.fullName}</i></h3><dl><div><dt>Colony</dt><dd>{playerCfu} CFU</dd></div><div><dt>Arsenal</dt><dd className={playerArsenal?"active":""}>{playerArsenal?"Activated":"Dormant"}</dd></div></dl></article><span className="versus-mark">VS</span><article><span className="player-label">{mode==="2_players"?"Player 2":"Automated Rival"}</span><Microbe tone="mint"/><h3><i>{opponent.fullName}</i></h3><dl><div><dt>Colony</dt><dd>{opponentCfu} CFU</dd></div><div><dt>Arsenal</dt><dd className={opponentArsenal?"active":""}>{opponentArsenal?"Activated":"Dormant"}</dd></div></dl></article></div>
+    <div className="versus"><article><span className="player-label">{mode==="2_players"?"Player 1":"You"}</span><Microbe tone="coral" shape={player.cellShape}/><h3><i>{player.fullName}</i></h3><dl><div><dt>Colony</dt><dd>{playerCfu} CFU</dd></div><div><dt>Arsenal</dt><dd className={playerArsenal?"active":""}>{playerArsenal?"Activated":"Dormant"}</dd></div></dl></article><span className="versus-mark">VS</span><article><span className="player-label">{mode==="2_players"?"Player 2":"Automated Rival"}</span><Microbe tone="mint" shape={opponent.cellShape}/><h3><i>{opponent.fullName}</i></h3><dl><div><dt>Colony</dt><dd>{opponentCfu} CFU</dd></div><div><dt>Arsenal</dt><dd className={opponentArsenal?"active":""}>{opponentArsenal?"Activated":"Dormant"}</dd></div></dl></article></div>
     <button className="primary-action centered-action" onClick={() => go("arena")}>Enter the microscopic arena <span>→</span></button>
   </section>;
 }
@@ -154,13 +164,13 @@ function Preview({ go, mode, player, opponent, playerCfu, opponentCfu, playerArs
 function Arena({ go, mode, player, opponent, environment, result, seed }: { go:(screen:Screen)=>void;mode:GameMode;player:Fighter;opponent:Fighter;environment:Environment;result:BattleResult;seed:number }) {
   return <section className="scene arena-scene" data-testid="screen-arena"><div className="heat-haze"/><div className="arena-top"><div><small>{mode==="2_players"?"Player 1":"You"} · <i>{player.fullName}</i></small><span><b style={{width:"64%"}}/></span></div><p>{environment.toUpperCase()}</p><div><small>{mode==="2_players"?"Player 2":"Automated Rival"} · <i>{opponent.fullName}</i></small><span><b style={{width:"64%"}}/></span></div></div>
     <PhaserArena environment={environment} player={player} opponent={opponent} result={result} seed={seed} onComplete={()=>go("results")}/>
-    <div className="battle-caption"><span>8.0s</span><p><b>Outcome precomputed</b> · The animation dramatizes the stored battle result.</p><button onClick={() => go("results")}>Skip →</button></div>
+    <div className="battle-caption"><button onClick={() => go("results")}>Skip battle →</button></div>
   </section>;
 }
 
 function Results({ result, mode, player, opponent, environment, onRematch, onChangeFighters, onMainMenu }: { result:BattleResult;mode:GameMode;player:Fighter;opponent:Fighter;environment:Environment;onRematch:()=>void;onChangeFighters:()=>void;onMainMenu:()=>void }) {
   const [expanded, setExpanded] = useState(false);
-  const playerWon=result.winner==="A", tie=result.winner==="tie"; const winner=playerWon?player:opponent; const missing=!winner.products.length||!winner.activities.length||!winner.curiousFact; const headline=mode==="2_players"?(tie?"TIE!":playerWon?"PLAYER 1 WINS!":"PLAYER 2 WINS!"):(tie?"TIE!":playerWon?"VICTORY!":"DEFEAT!"); return <section className="scene results-scene" data-testid="screen-results"><div className="result-orbit"><Microbe tone={playerWon?"coral":"mint"}/></div><p className="eyebrow">Culture resolved</p><h2>{headline}</h2><h3>{tie?"Evenly matched!":<><i>{winner.fullName}</i> wins</>}</h3><p className="result-lede">{tie?"That was a good fight! The microbes were tied.":Math.abs(result.player.total-result.opponent.total)>=10?"A commanding culture! The winner adapted, grew and brought the stronger biological toolkit.":"A close culture clash—small biological advantages decided the arena."}</p>
+  const playerWon=result.winner==="A", tie=result.winner==="tie"; const winner=playerWon?player:opponent; const missing=!winner.products.length||!winner.activities.length||!winner.curiousFact; const headline=mode==="2_players"?(tie?"TIE!":playerWon?"PLAYER 1 WINS!":"PLAYER 2 WINS!"):(tie?"TIE!":playerWon?"VICTORY!":"DEFEAT!"); return <section className="scene results-scene" data-testid="screen-results"><div className="result-orbit"><Microbe tone={playerWon?"coral":"mint"} shape={winner.cellShape}/></div><p className="eyebrow">Culture resolved</p><h2>{headline}</h2><h3>{tie?"Evenly matched!":<><i>{winner.fullName}</i> wins</>}</h3><p className="result-lede">{tie?"That was a good fight! The microbes were tied.":Math.abs(result.player.total-result.opponent.total)>=10?"A commanding culture! The winner adapted, grew and brought the stronger biological toolkit.":"A close culture clash—small biological advantages decided the arena."}</p>
     <div className="score-pair"><div><small>{mode==="2_players"?"Player 1":"You"}</small><b>{result.player.total.toFixed(1)}</b></div><span>{(result.player.total-result.opponent.total)>=0?"+":""}{(result.player.total-result.opponent.total).toFixed(1)}</span><div><small>{mode==="2_players"?"Player 2":"Automated Rival"}</small><b>{result.opponent.total.toFixed(1)}</b></div></div>
     <button className="science-toggle" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>Scientific breakdown <span>{expanded ? "−" : "+"}</span></button>
     {expanded && <div className="full-breakdown"><div className="score-columns">{[[mode==="2_players"?"Player 1":"You",result.player],[mode==="2_players"?"Player 2":"Automated Rival",result.opponent]].map(([label,data])=><article key={String(label)}><h4>{String(label)} · {(data as typeof result.player).fighterName}</h4>{(data as typeof result.player).components.filter(c=>c.name!=="Base").map(c=><span key={c.name}><b>{c.value>=0?"+":""}{c.value.toFixed(1)}</b><em>{c.name}</em><small>{c.explanation}</small></span>)}</article>)}</div><aside><b>Biological interpretation</b><p>{tie?"Neither culture established a scoring advantage under the documented evidence and shared arena rules.":`${winner.fullName} brought ${winner.accessions.length} known BGC(s). ${environment} pressure, colony size and documented activity produced the decisive component difference.`} {missing?"Some biological details remain unresolved. That is why we need more research.":winner.curiousFact}</p></aside></div>}
@@ -188,5 +198,5 @@ export default function HomePage() {
     screen === "environment" ? <EnvironmentScreen go={setScreen} value={environment} setValue={setEnvironment} mode={mode} previewFor={env=>scoreBattle({mode,seed:battleSeed,environment:env,player:p1,opponent:p2,playerColonyCfu:player1Cfu,opponentColonyCfu:player2Cfu,playerArsenal:player1Arsenal,opponentArsenal:player2Arsenal})}/> :
     screen === "preview" ? <Preview go={setScreen} mode={mode} player={p1} opponent={p2} playerCfu={player1Cfu} opponentCfu={player2Cfu} playerArsenal={player1Arsenal} opponentArsenal={player2Arsenal} environment={environment} result={result}/> :
     screen === "arena" ? <Arena go={setScreen} mode={mode} player={p1} opponent={p2} environment={environment} result={result} seed={battleSeed}/> : <Results result={result} mode={mode} player={p1} opponent={p2} environment={environment} onRematch={()=>{setBattleSeed(seed=>seed+1);if(mode==="1_player")setPlayer2Cfu(generateOpponentCfu(battleSeed+1));setScreen("arena")}} onChangeFighters={startGame} onMainMenu={()=>{setPlayer1(null);setPlayer2(null);setSelected(null);setMode("1_player");setScreen("home")}}/>;
-  return <main className={`game-shell theme-${screen}`}><div className="liquid-bg"><i/><i/><i/></div><AppHeader screen={screen} setScreen={setScreen}/><div className="screen-frame" key={screen}>{content}</div><footer><span>Design prototype · Phase 2</span><span>Biology first · outcome precomputed</span></footer></main>;
+  return <main className={`game-shell theme-${screen}`}><div className="liquid-bg"><i/><i/><i/></div><AppHeader screen={screen} setScreen={setScreen}/><div className="screen-frame" key={screen}>{content}</div><footer><span>Microbial Mayhem</span><span>Where battling bacteria teach biology</span></footer></main>;
 }

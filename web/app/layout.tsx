@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Microbial Mayhem — Small cells. Big chemistry.",
+  title: "Microbial Mayhem — A Microscopic Battle to Survive",
   description: "A vibrant, biologically grounded microbial battle game for the web.",
   manifest: "/manifest.webmanifest",
   themeColor: "#071a16",
