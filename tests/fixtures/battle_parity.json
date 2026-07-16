@@ -1,0 +1,869 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "name": "solo_hot_advantage_arsenal_on",
+      "mode": "1_player",
+      "seed": 17,
+      "environment": "Hot",
+      "player": {
+        "catalogId": "fixture:thermalis",
+        "fullName": "Thermus thermalis MM-1",
+        "accessions": [
+          "BGC-HOT-1",
+          "BGC-HOT-2"
+        ],
+        "products": [
+          "thermocin"
+        ],
+        "activities": [
+          "antibacterial"
+        ],
+        "traits": [
+          {
+            "trait": "Thermophile",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Thermophile."
+          },
+          {
+            "trait": "Antimicrobial production",
+            "evidenceLevel": "Indirect evidence",
+            "field": "chem_acts",
+            "explanation": "Fixture evidence for Antimicrobial production."
+          }
+        ]
+      },
+      "opponent": {
+        "catalogId": "fixture:cryonix",
+        "fullName": "Psychrobacter cryonix ICE-2",
+        "accessions": [
+          "BGC-COLD-1"
+        ],
+        "products": [
+          "cryoprotectin"
+        ],
+        "activities": [
+          "siderophore"
+        ],
+        "traits": [
+          {
+            "trait": "Cryophile",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Cryophile."
+          }
+        ]
+      },
+      "playerColonyCfu": 750,
+      "opponentColonyCfu": 250,
+      "playerArsenal": true,
+      "opponentArsenal": false,
+      "expected": {
+        "player": {
+          "fighterName": "Thermus thermalis MM-1",
+          "environmentStatus": "MATCHED",
+          "colonyCfu": 750,
+          "total": 51.69,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 9.6,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 12.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 2.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 3.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 5.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": 0.09,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "opponent": {
+          "fighterName": "Psychrobacter cryonix ICE-2",
+          "environmentStatus": "MISMATCHED",
+          "colonyCfu": 250,
+          "total": 36.23,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 8.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 2.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 2.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": 1.23,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "winner": "A"
+      }
+    },
+    {
+      "name": "solo_cold_loss_arsenal_off",
+      "mode": "1_player",
+      "seed": 23,
+      "environment": "Cold",
+      "player": {
+        "catalogId": "fixture:thermalis",
+        "fullName": "Thermus thermalis MM-1",
+        "accessions": [
+          "BGC-HOT-1",
+          "BGC-HOT-2"
+        ],
+        "products": [
+          "thermocin"
+        ],
+        "activities": [
+          "antibacterial"
+        ],
+        "traits": [
+          {
+            "trait": "Thermophile",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Thermophile."
+          },
+          {
+            "trait": "Antimicrobial production",
+            "evidenceLevel": "Indirect evidence",
+            "field": "chem_acts",
+            "explanation": "Fixture evidence for Antimicrobial production."
+          }
+        ]
+      },
+      "opponent": {
+        "catalogId": "fixture:cryonix",
+        "fullName": "Psychrobacter cryonix ICE-2",
+        "accessions": [
+          "BGC-COLD-1"
+        ],
+        "products": [
+          "cryoprotectin"
+        ],
+        "activities": [
+          "siderophore"
+        ],
+        "traits": [
+          {
+            "trait": "Cryophile",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Cryophile."
+          }
+        ]
+      },
+      "playerColonyCfu": 100,
+      "opponentColonyCfu": 1000,
+      "playerArsenal": false,
+      "opponentArsenal": true,
+      "expected": {
+        "player": {
+          "fighterName": "Thermus thermalis MM-1",
+          "environmentStatus": "MISMATCHED",
+          "colonyCfu": 100,
+          "total": 36.4,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 6.7,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 3.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 3.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": 1.7,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "opponent": {
+          "fighterName": "Psychrobacter cryonix ICE-2",
+          "environmentStatus": "MATCHED",
+          "colonyCfu": 1000,
+          "total": 51.79,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 10.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 12.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 1.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 2.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 3.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": 1.79,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "winner": "B"
+      }
+    },
+    {
+      "name": "local_salty_colony_tradeoff",
+      "mode": "2_players",
+      "seed": 41,
+      "environment": "Salty",
+      "player": {
+        "catalogId": "fixture:halica",
+        "fullName": "Halomonas halica BRINE-7",
+        "accessions": [
+          "BGC-SALT-1",
+          "BGC-SALT-2",
+          "BGC-SALT-3"
+        ],
+        "products": [],
+        "activities": [
+          "antifungal"
+        ],
+        "traits": [
+          {
+            "trait": "Halophile",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Halophile."
+          }
+        ]
+      },
+      "opponent": {
+        "catalogId": "fixture:resista",
+        "fullName": "Pseudomonas resista ABX-9",
+        "accessions": [
+          "BGC-ABX-1"
+        ],
+        "products": [],
+        "activities": [
+          "antimicrobial"
+        ],
+        "traits": [
+          {
+            "trait": "Drug resistant",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Drug resistant."
+          }
+        ]
+      },
+      "playerColonyCfu": 250,
+      "opponentColonyCfu": 750,
+      "playerArsenal": true,
+      "opponentArsenal": true,
+      "expected": {
+        "player": {
+          "fighterName": "Halomonas halica BRINE-7",
+          "environmentStatus": "MATCHED",
+          "colonyCfu": 250,
+          "total": 49.52,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 8.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 12.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 3.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 2.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 5.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": -0.48,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "opponent": {
+          "fighterName": "Pseudomonas resista ABX-9",
+          "environmentStatus": "MISMATCHED",
+          "colonyCfu": 750,
+          "total": 42.52,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 9.6,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 5.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 1.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 3.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 4.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": -1.08,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "winner": "A"
+      }
+    },
+    {
+      "name": "local_antibiotic_resistance",
+      "mode": "2_players",
+      "seed": 73,
+      "environment": "In the presence of antibiotics",
+      "player": {
+        "catalogId": "fixture:plain",
+        "fullName": "Bacterium ordinaria N-0",
+        "accessions": [],
+        "products": [],
+        "activities": [],
+        "traits": []
+      },
+      "opponent": {
+        "catalogId": "fixture:resista",
+        "fullName": "Pseudomonas resista ABX-9",
+        "accessions": [
+          "BGC-ABX-1"
+        ],
+        "products": [],
+        "activities": [
+          "antimicrobial"
+        ],
+        "traits": [
+          {
+            "trait": "Drug resistant",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Drug resistant."
+          }
+        ]
+      },
+      "playerColonyCfu": 1000,
+      "opponentColonyCfu": 50,
+      "playerArsenal": false,
+      "opponentArsenal": true,
+      "expected": {
+        "player": {
+          "fighterName": "Bacterium ordinaria N-0",
+          "environmentStatus": "UNKNOWN",
+          "colonyCfu": 1000,
+          "total": 34.12,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 10.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": -0.88,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "opponent": {
+          "fighterName": "Pseudomonas resista ABX-9",
+          "environmentStatus": "MATCHED",
+          "colonyCfu": 50,
+          "total": 51.71,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 5.7,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 12.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 5.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 1.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 3.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 4.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": 0.01,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "winner": "B"
+      }
+    },
+    {
+      "name": "neutral_arsenal_comparison",
+      "mode": "1_player",
+      "seed": 101,
+      "environment": "Neutral",
+      "player": {
+        "catalogId": "fixture:halica",
+        "fullName": "Halomonas halica BRINE-7",
+        "accessions": [
+          "BGC-SALT-1",
+          "BGC-SALT-2",
+          "BGC-SALT-3"
+        ],
+        "products": [],
+        "activities": [
+          "antifungal"
+        ],
+        "traits": [
+          {
+            "trait": "Halophile",
+            "evidenceLevel": "Direct evidence",
+            "field": "genes",
+            "explanation": "Fixture evidence for Halophile."
+          }
+        ]
+      },
+      "opponent": {
+        "catalogId": "fixture:plain",
+        "fullName": "Bacterium ordinaria N-0",
+        "accessions": [],
+        "products": [],
+        "activities": [],
+        "traits": []
+      },
+      "playerColonyCfu": 500,
+      "opponentColonyCfu": 500,
+      "playerArsenal": true,
+      "opponentArsenal": false,
+      "expected": {
+        "player": {
+          "fighterName": "Halomonas halica BRINE-7",
+          "environmentStatus": "UNKNOWN",
+          "colonyCfu": 500,
+          "total": 39.32,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 9.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 3.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 2.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 5.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": 0.32,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "opponent": {
+          "fighterName": "Bacterium ordinaria N-0",
+          "environmentStatus": "UNKNOWN",
+          "colonyCfu": 500,
+          "total": 32.78,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 9.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": -1.22,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "winner": "A"
+      }
+    },
+    {
+      "name": "deterministic_tie",
+      "mode": "2_players",
+      "seed": 449,
+      "environment": "Neutral",
+      "player": {
+        "catalogId": "fixture:twin",
+        "fullName": "Bacillus aequalis TIE",
+        "accessions": [],
+        "products": [],
+        "activities": [],
+        "traits": []
+      },
+      "opponent": {
+        "catalogId": "fixture:twin",
+        "fullName": "Bacillus aequalis TIE",
+        "accessions": [],
+        "products": [],
+        "activities": [],
+        "traits": []
+      },
+      "playerColonyCfu": 500,
+      "opponentColonyCfu": 500,
+      "playerArsenal": false,
+      "opponentArsenal": false,
+      "expected": {
+        "player": {
+          "fighterName": "Bacillus aequalis TIE",
+          "environmentStatus": "UNKNOWN",
+          "colonyCfu": 500,
+          "total": 32.76,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 9.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": -1.24,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "opponent": {
+          "fighterName": "Bacillus aequalis TIE",
+          "environmentStatus": "UNKNOWN",
+          "colonyCfu": 500,
+          "total": 32.76,
+          "components": [
+            {
+              "name": "Base",
+              "value": 25.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Colony",
+              "value": 9.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Environment",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Resistance defense",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "BGC arsenal",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Known activity",
+              "value": 0.0,
+              "includedInTotal": false
+            },
+            {
+              "name": "Offense total",
+              "value": 0.0,
+              "includedInTotal": true
+            },
+            {
+              "name": "Battle variation",
+              "value": -1.24,
+              "includedInTotal": true
+            }
+          ]
+        },
+        "winner": "tie"
+      }
+    }
+  ]
+}
