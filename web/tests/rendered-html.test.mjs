@@ -58,4 +58,7 @@ test("packages original modular audio for offline mobile play", async () => {
   }
   assert.match(feedback, /visibilitychange|suspend|resume/);
   assert.match(feedback, /lastCue/);
+  for (const channel of ["interface", "character", "ambience", "impact", "reveal"]) assert.match(feedback, new RegExp(channel));
+  assert.match(feedback, /@capacitor\/haptics/);
+  assert.match(feedback, /subscribe\(listener/);
 });

@@ -20,6 +20,7 @@
   "dependencies": {
     "@capacitor/android": "^8.4.2",
     "@capacitor/core": "^8.4.2",
+    "@capacitor/haptics": "^8.0.2",
     "drizzle-orm": "0.45.2",
     "idb": "^8.0.3",
     "next": "16.2.6",

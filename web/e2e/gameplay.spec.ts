@@ -32,14 +32,14 @@ test("production roster reshuffles, searches, and opens Biology Details", async 
   await expect.poll(async () => await cards.allTextContents()).not.toEqual(before);
   const search = page.getByRole("textbox", { name: "Search bacterial fighters" });
   await search.fill("Bacillus");
-  await expect(page.getByRole("status")).toContainText("Found");
+  await expect(page.locator(".search-status")).toContainText("Found");
   await cards.first().click();
   await page.getByRole("button", { name: "Biology details" }).click();
   await expect(page.getByRole("dialog")).toContainText("Recorded biological evidence");
   await page.getByRole("button", { name: "Close biology details" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await search.fill("not-a-real-microbe");
-  await expect(page.getByRole("status")).toContainText("database went quiet");
+  await expect(page.locator(".search-status")).toContainText("database went quiet");
 });
 
 test("one-player completes automatically and supports rematch and menu actions", async ({ page }) => {

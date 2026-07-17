@@ -49,6 +49,8 @@ function AppHeader({ screen, goBack, setScreen }: { screen: Screen; goBack: () =
   );
 }
 
+function FeedbackCaption(){const [caption,setCaption]=useState("");useEffect(()=>gameFeedback.subscribe(text=>{setCaption(text);const timer=window.setTimeout(()=>setCaption(""),1500);return()=>window.clearTimeout(timer)}),[]);return <div className={`feedback-caption ${caption?"is-visible":""}`} role="status" aria-live="polite">{caption}</div>}
+
 function Home({ start, mode, setMode, open, introSeen, skipIntro, ready }: { start: () => void; mode: GameMode; setMode:(mode:GameMode)=>void;open:(screen:Screen)=>void;introSeen:boolean;skipIntro:()=>void;ready:boolean }) {
   return (
     <section className={`scene home-scene ${introSeen?"intro-complete":"intro-playing"}`} data-testid="screen-home">
@@ -230,5 +232,5 @@ export default function HomePage() {
     screen === "environment" ? <EnvironmentScreen go={setScreen} value={environment} setValue={setEnvironment} mode={mode} previewFor={env=>scoreBattle({mode,seed:battleSeed,environment:env,player:p1,opponent:p2,playerColonyCfu:player1Cfu,opponentColonyCfu:player2Cfu,playerArsenal:player1Arsenal,opponentArsenal:player2Arsenal})}/> :
     screen === "preview" ? <Preview go={setScreen} mode={mode} player={p1} opponent={p2} playerCfu={player1Cfu} opponentCfu={player2Cfu} playerArsenal={player1Arsenal} opponentArsenal={player2Arsenal} environment={environment} result={result}/> :
     screen === "arena" ? <Arena go={setScreen} mode={mode} player={p1} opponent={p2} environment={environment} result={result} seed={battleSeed} preferences={preferences} updatePreferences={updatePreferences}/> : <Results result={result} mode={mode} player={p1} opponent={p2} environment={environment} onRematch={()=>{setBattleSeed(seed=>seed+1);if(mode==="1_player")setPlayer2Cfu(generateOpponentCfu(battleSeed+1));setScreen("arena")}} onChangeFighters={startGame} onMainMenu={()=>{setPlayer1(null);setPlayer2(null);setSelected(null);setMode("1_player");setHistory([]);setScreen("home")}}/>;
-  return <main className={`game-shell theme-${screen} viewport-${viewport} ${preferences.reducedMotion?"reduce-motion":""}`} data-viewport={viewport}><div className="liquid-bg"><i/><i/><i/></div><AppHeader screen={screen} goBack={goBack} setScreen={next=>next==="home"?(setHistory([]),setScreen("home")):navigate(next)}/><div className="screen-frame" key={screen}>{content}</div></main>;
+  return <main className={`game-shell theme-${screen} viewport-${viewport} ${preferences.reducedMotion?"reduce-motion":""}`} data-viewport={viewport}><div className="liquid-bg"><i/><i/><i/></div><AppHeader screen={screen} goBack={goBack} setScreen={next=>next==="home"?(setHistory([]),setScreen("home")):navigate(next)}/><FeedbackCaption/><div className="screen-frame" key={screen}>{content}</div></main>;
 }

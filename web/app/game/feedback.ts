@@ -2,73 +2,25 @@ import type { GamePreferences } from "./preferences";
 
 export type MusicPhase = "setup" | "battle" | "results";
 export type SoundCue = "click" | "select" | "attack" | "impact" | "ability" | "arsenal" | "clash" | "final_hit" | "victory" | "defeat";
+export type AudioChannel = "music" | "interface" | "character" | "ambience" | "impact" | "reveal";
 
-const tracks: Record<MusicPhase, string> = {
-  setup: "./audio/music/setup_theme.wav",
-  battle: "./audio/music/battle_theme.wav",
-  results: "./audio/music/results_theme.wav",
-};
-const cues: Record<SoundCue, string> = {
-  click: "./audio/sfx/click.wav", select: "./audio/sfx/select.wav", attack: "./audio/sfx/attack.wav",
-  impact: "./audio/sfx/impact.wav", ability: "./audio/sfx/ability.wav", arsenal: "./audio/sfx/arsenal.wav",
-  clash: "./audio/sfx/clash.wav", final_hit: "./audio/sfx/final_hit.wav", victory: "./audio/sfx/victory.wav", defeat: "./audio/sfx/defeat.wav",
+const tracks: Record<MusicPhase, string> = { setup:"./audio/music/setup_theme.wav",battle:"./audio/music/battle_theme.wav",results:"./audio/music/results_theme.wav" };
+const cueConfig:Record<SoundCue,{src:string;channel:AudioChannel;caption:string;cooldown:number}>={
+  click:{src:"./audio/sfx/click.wav",channel:"interface",caption:"Interface tap",cooldown:70},select:{src:"./audio/sfx/select.wav",channel:"interface",caption:"Selection confirmed",cooldown:90},attack:{src:"./audio/sfx/attack.wav",channel:"character",caption:"Microbial strike",cooldown:110},impact:{src:"./audio/sfx/impact.wav",channel:"impact",caption:"Arena impact",cooldown:100},ability:{src:"./audio/sfx/ability.wav",channel:"character",caption:"Biological adaptation",cooldown:140},arsenal:{src:"./audio/sfx/arsenal.wav",channel:"reveal",caption:"Documented chemistry activated",cooldown:180},clash:{src:"./audio/sfx/clash.wav",channel:"ambience",caption:"Habitat pressure",cooldown:160},final_hit:{src:"./audio/sfx/final_hit.wav",channel:"impact",caption:"Decisive adaptation",cooldown:300},victory:{src:"./audio/sfx/victory.wav",channel:"reveal",caption:"Victory",cooldown:600},defeat:{src:"./audio/sfx/defeat.wav",channel:"reveal",caption:"Culture defeated",cooldown:600},
 };
 
 class GameFeedback {
-  private preferences: GamePreferences | null = null;
-  private music: HTMLAudioElement | null = null;
-  private phase: MusicPhase | null = null;
-  private lastCue = new Map<SoundCue, number>();
-  private unlocked = false;
-
-  configure(preferences: GamePreferences) {
-    this.preferences = preferences;
-    if (this.music) this.music.volume = preferences.musicVolume;
-    if (preferences.musicVolume <= 0) this.music?.pause();
-  }
-
-  unlock() {
-    this.unlocked = true;
-    if (this.phase) void this.startPhase(this.phase);
-  }
-
-  async startPhase(phase: MusicPhase) {
-    this.phase = phase;
-    if (typeof Audio === "undefined" || !this.unlocked || !this.preferences || this.preferences.musicVolume <= 0) return;
-    if (this.music?.dataset.phase === phase) {
-      if (this.music.paused) await this.music.play().catch(() => undefined);
-      return;
-    }
-    this.music?.pause();
-    const music = new Audio(tracks[phase]);
-    music.dataset.phase = phase;
-    music.loop = true;
-    music.preload = "auto";
-    music.volume = this.preferences.musicVolume;
-    this.music = music;
-    await music.play().catch(() => undefined);
-  }
-
-  cue(cue: SoundCue, strength: "light" | "medium" | "strong" = "light") {
-    if (typeof Audio === "undefined" || !this.preferences || this.preferences.effectsVolume <= 0) return;
-    const now = Date.now();
-    if (now - (this.lastCue.get(cue) || 0) < 70) return;
-    this.lastCue.set(cue, now);
-    this.unlock();
-    const sound = new Audio(cues[cue]);
-    sound.preload = "auto";
-    sound.volume = this.preferences.effectsVolume;
-    void sound.play().catch(() => undefined);
-    this.haptic(strength);
-  }
-
-  haptic(strength: "light" | "medium" | "strong" = "light") {
-    if (!this.preferences?.haptics || typeof navigator === "undefined" || !("vibrate" in navigator)) return;
-    navigator.vibrate(strength === "strong" ? 28 : strength === "medium" ? 16 : 8);
-  }
-
-  suspend() { this.music?.pause(); }
-  resume() { if (this.phase && !document.hidden) void this.startPhase(this.phase); }
+  private preferences:GamePreferences|null=null; private music:HTMLAudioElement|null=null; private phase:MusicPhase|null=null; private lastCue=new Map<SoundCue,number>(); private active=new Map<AudioChannel,Set<HTMLAudioElement>>(); private listeners=new Set<(caption:string)=>void>(); private unlocked=false;
+  configure(preferences:GamePreferences){this.preferences=preferences;if(this.music)this.music.volume=preferences.musicVolume;if(preferences.musicVolume<=0)this.music?.pause();for(const sounds of this.active.values())for(const sound of sounds)sound.volume=preferences.effectsVolume}
+  subscribe(listener:(caption:string)=>void){this.listeners.add(listener);return()=>this.listeners.delete(listener)}
+  private caption(text:string){if(!this.preferences?.captions)return;for(const listener of this.listeners)listener(text)}
+  unlock(){this.unlocked=true;if(this.phase)void this.startPhase(this.phase)}
+  async startPhase(phase:MusicPhase){this.phase=phase;if(typeof Audio==="undefined"||!this.unlocked||!this.preferences||this.preferences.musicVolume<=0)return;if(this.music?.dataset.phase===phase){if(this.music.paused)await this.music.play().catch(()=>undefined);return}this.music?.pause();const music=new Audio(tracks[phase]);music.dataset.phase=phase;music.loop=true;music.preload="auto";music.volume=this.preferences.musicVolume;this.music=music;await music.play().catch(()=>undefined)}
+  cue(cue:SoundCue,strength:"light"|"medium"|"strong"="light"){if(!this.preferences)return;const config=cueConfig[cue],now=Date.now();if(now-(this.lastCue.get(cue)||0)<config.cooldown)return;this.lastCue.set(cue,now);this.caption(config.caption);this.haptic(strength);if(typeof Audio==="undefined"||this.preferences.effectsVolume<=0)return;this.unlock();const channel=this.active.get(config.channel)||new Set<HTMLAudioElement>();this.active.set(config.channel,channel);if(channel.size>=4){const oldest=channel.values().next().value as HTMLAudioElement|undefined;oldest?.pause();if(oldest)channel.delete(oldest)}const sound=new Audio(config.src);sound.preload="auto";sound.volume=this.preferences.effectsVolume;channel.add(sound);sound.addEventListener("ended",()=>channel.delete(sound),{once:true});sound.addEventListener("error",()=>channel.delete(sound),{once:true});void sound.play().catch(()=>channel.delete(sound))}
+  haptic(strength:"light"|"medium"|"strong"="light"){if(!this.preferences?.haptics||typeof navigator==="undefined")return;void import("@capacitor/haptics").then(({Haptics,ImpactStyle})=>Haptics.impact({style:strength==="strong"?ImpactStyle.Heavy:strength==="medium"?ImpactStyle.Medium:ImpactStyle.Light})).catch(()=>{if("vibrate" in navigator)navigator.vibrate(strength==="strong"?28:strength==="medium"?16:8)})}
+  suspend(){this.music?.pause();for(const sounds of this.active.values())for(const sound of sounds)sound.pause()}
+  resume(){if(this.phase&&typeof document!=="undefined"&&!document.hidden)void this.startPhase(this.phase)}
+  stopAll(){this.music?.pause();this.music=null;for(const sounds of this.active.values())for(const sound of sounds)sound.pause();this.active.clear()}
 }
 
-export const gameFeedback = new GameFeedback();
+export const gameFeedback=new GameFeedback();
