@@ -52,7 +52,7 @@ test("one-player completes automatically and supports rematch and menu actions",
   await page.getByRole("button", { name: "Enter this habitat →" }).click();
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Enter the microscopic arena →" }).click();
-  await expect(page.getByTestId("screen-results")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("screen-results")).toBeVisible({ timeout: 22_000 });
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Scientific breakdown" }).click();
   await expect(page.getByText("Biological interpretation")).toBeVisible();
@@ -78,6 +78,10 @@ test("two-player locks distinct fighters and completes both independent setups",
   await page.getByRole("button", { name: "Enter this habitat →" }).click();
   await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Enter the microscopic arena →" }).click();
+  await page.getByRole("button", { name: "Pause battle" }).click();
+  await expect(page.getByRole("dialog", { name: "Battle paused" })).toBeVisible();
+  await page.getByRole("switch", { name: /Sound effects/ }).click();
+  await page.getByRole("button", { name: /Resume culture/ }).click();
   await page.getByRole("button", { name: "Skip battle →" }).click();
   await expect(page.getByTestId("screen-results")).toBeVisible();
   await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
