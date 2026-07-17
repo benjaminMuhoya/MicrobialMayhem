@@ -25,6 +25,10 @@ async function setupPlayer(page: Page, player: 1 | 2) {
 
 test("production roster reshuffles, searches, and opens Biology Details", async ({ page }) => {
   await enterCulture(page);
+  const tutorial = page.getByRole("region", { name: "Interactive tutorial" });
+  await expect(tutorial).toContainText("Tap a fighter");
+  await tutorial.getByRole("button", { name: "Skip" }).click();
+  await expect(tutorial).toHaveCount(0);
   const cards = page.locator(".roster-list button");
   await expect(cards.first()).toBeVisible();
   const before = await cards.allTextContents();

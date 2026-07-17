@@ -5,6 +5,7 @@ export interface GamePreferences {
   reducedMotion: boolean;
   captions: boolean;
   introSeen: boolean;
+  tutorialSeen: boolean;
 }
 export const DEFAULT_PREFERENCES: GamePreferences = {
   musicVolume: 0.65,
@@ -13,6 +14,7 @@ export const DEFAULT_PREFERENCES: GamePreferences = {
   reducedMotion: false,
   captions: true,
   introSeen: false,
+  tutorialSeen: false,
 };
 
 export function normalizePreferences(value: Partial<GamePreferences> | undefined): GamePreferences {
