@@ -1,0 +1,1 @@
+[data-quality="low"] .liquid-bg,[data-quality="low"] .heat-haze,[data-quality="low"] .environment-preview i:nth-child(n+4){display:none}[data-quality="low"] :is(.roster-panel,.fighter-focus,.colony-controls,.pause-overlay,.compare-tray){backdrop-filter:none!important}[data-quality="low"] .microbe{filter:none}[data-quality="medium"] :is(.liquid-bg,.heat-haze){opacity:.35}
