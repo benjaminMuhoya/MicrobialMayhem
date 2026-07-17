@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head><link rel="stylesheet" href="./colony.css" /><link rel="stylesheet" href="./environment.css" /><link rel="stylesheet" href="./battle.css" /><link rel="stylesheet" href="./tutorial.css" /><link rel="stylesheet" href="./results.css" /><link rel="stylesheet" href="./progression.css" /></head>
+      <head><link rel="stylesheet" href="./colony.css" /><link rel="stylesheet" href="./environment.css" /><link rel="stylesheet" href="./battle.css" /><link rel="stylesheet" href="./tutorial.css" /><link rel="stylesheet" href="./results.css" /><link rel="stylesheet" href="./progression.css" /><link rel="stylesheet" href="./resilience.css" /></head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <PwaRuntime />{children}
       </body>
