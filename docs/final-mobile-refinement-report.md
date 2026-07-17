@@ -44,7 +44,7 @@ The Git history from `0fa4714` through `08f5437` provides the authoritative phas
 
 ## 5. Running and testing
 
-From `web`: run `npm ci`, `npm run dev`, and open the shown local URL. Use `npm run lint`, `npm test`, and `npm run test:e2e` for validation. The current suite passes 29 unit/parity checks and six end-to-end flows, including phone portrait, phone landscape, iPad portrait, iPad landscape two-player selection, one-player, and two-player gameplay. `npm run build:pages` produces `web/dist/pages`. The deployed game is https://benjaminmuhoya.github.io/MicrobialMayhem/.
+From `web`: run `npm ci`, `npm run dev`, and open the shown local URL. Use `npm run lint`, `npm test`, and `npm run test:e2e` for validation. The current suite passes 31 unit/parity/packaging checks and six end-to-end flows, including phone portrait, phone landscape, iPad portrait, iPad landscape two-player selection, one-player, and two-player gameplay. `npm run build:pages` produces `web/dist/pages`. The deployed game is https://benjaminmuhoya.github.io/MicrobialMayhem/.
 
 ## 6. Mobile packaging
 

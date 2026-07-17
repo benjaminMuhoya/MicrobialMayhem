@@ -6,7 +6,7 @@ Date: 2026-07-16
 
 The current game is a React 19 / Next-compatible Vinext application packaged with Capacitor 8. React owns the scene flow and setup state, while Phaser 4 is loaded only for the animated battle arena. The scientific catalog, deterministic fighter identity, Python-compatible random generator, and battle scoring are already separated into pure TypeScript modules. That separation makes a substantial visual and interaction redesign safe without changing battle outcomes.
 
-Capacitor is an appropriate native shell for this project. A full engine migration is not warranted: Phaser plus layered DOM/CSS art can already produce the requested 2.5D depth, particles, camera motion, and procedural morphology. The App Store risk is the current presentation, not the packaging technology. The visible prototype navigation, footer, long scrolling roster, fixed battle canvas, inactive settings button, and lack of lifecycle/audio/native controls make the current build feel web-like.
+Capacitor is an appropriate native shell for this project. A full engine migration was not warranted: Phaser plus layered DOM/CSS art now provides the requested 2.5D depth, particles, camera motion, and procedural morphology. The original presentation and lifecycle risks recorded below were resolved during the refinement phases; the remaining release risks are signing, store-account metadata, and physical-device verification.
 
 ## Current architecture
 
@@ -16,7 +16,7 @@ Capacitor is an appropriate native shell for this project. A full engine migrati
 - `web/app/components/PhaserArena.tsx`: dynamically imports Phaser and creates the battle canvas only when the arena scene is active.
 - `web/app/globals.css`: DOM fighter art, environment-card art, scene layout, animation, breakpoints, and reduced-motion media query.
 - Vinext/Vite produces both the hosted build and the static `dist/pages` package copied into Capacitor.
-- Capacitor Android is configured with local packaged assets and an HTTPS-style internal origin. iOS has not yet been added.
+- Capacitor Android and iOS are configured with locally packaged assets and no remote gameplay URL. GitHub verifies Android APK/AAB output and an unsigned iPhone/iPad simulator compilation.
 
 ### Screens and navigation
 
@@ -67,31 +67,29 @@ The following files are calculation/data contracts and must not be changed as pa
 
 ### Audio
 
-- The Python application has a modular audio manager and locally generated WAV assets.
-- The web/mobile application currently disables Phaser audio and has no web audio service.
-- Audio assets are not currently copied into the web public bundle.
-- Asset generation and licensing notes exist at `assets/README.md`; these should be extended for every mobile sound and music asset.
+- The web/mobile build uses a centralized feedback manager for music, interface, character, ambience, impact, and reveal channels.
+- Original WAV assets are packaged locally, with duplicate-sound cooldowns, lifecycle suspension/resume, captions, volume controls, and native haptics where available.
+- Sources and licensing are recorded in `docs/asset-credits.md`.
 
 ### Offline and lifecycle behavior
 
 - Hosted/PWA mode has a network-first service worker with cached fallback.
 - Capacitor packages the application and 384-fighter catalog locally, so normal play does not require a server.
-- There is no friendly catalog-load recovery UI, explicit online/offline state, foreground/background handling, pause-on-background, audio suspension, or save/resume session behavior yet.
+- Friendly recovery, offline status, validated optional updates, last-known-good fallback, foreground/background pausing, audio suspension, and session save/resume are implemented.
 
 ### Scaling and accessibility
 
-- Existing CSS uses `svh`, safe-area environment variables, focus-visible outlines, responsive breakpoints, and `prefers-reduced-motion`.
-- The current responsive model largely collapses desktop panels into a vertical phone page.
-- There are no explicit phone-landscape, phone-portrait, or iPad layout modes.
-- Touch targets are inconsistent, hover styling is sometimes the strongest feedback, modal focus trapping is incomplete, and long names can compete with fixed panels.
+- CSS uses `svh`, safe-area environment variables, focus-visible outlines, responsive breakpoints, and `prefers-reduced-motion`.
+- Explicit phone portrait/landscape and tablet portrait/landscape modes are implemented, including split landscape-iPad two-player selection.
+- Automated browser tests cover viewport overflow and touch targets; physical-device safe-area, Dynamic Island, trackpad, and keyboard verification remains a release gate.
 
 ### Packaging and App Store suitability
 
 - Capacitor is suitable for Google Play and App Store distribution.
-- Android debug packaging works and runs offline.
-- iOS/iPadOS packaging still needs `@capacitor/ios`, an Xcode project, signing, icons, launch assets, lifecycle configuration, and device testing.
-- The current build exposes no browser chrome inside Capacitor, but it still visually resembles a responsive website.
-- Apple review risk remains until prototype navigation/footer are removed, the interface becomes scene-based and touch-first, settings/help/lab become real game spaces, and the experience demonstrates lasting game value beyond a wrapped webpage.
+- Android debug APK and unsigned release AAB packaging are continuously built on GitHub and work from local packaged content.
+- iOS/iPadOS includes the Capacitor project, modern iPhone/iPad target families, icons, launch assets, privacy manifest, lifecycle integration, and an unsigned simulator-build workflow.
+- The native build exposes no browser chrome and presents full-screen, touch-first scenes with real Settings, How to Play, Microbe Lab, Discoveries, tutorial, battle, and results spaces.
+- Apple/Google signing, TestFlight/Play internal testing, physical-device verification, and final review metadata remain owner gates.
 
 ## Reusable visual systems
 
@@ -115,16 +113,12 @@ The following files are calculation/data contracts and must not be changed as pa
 
 ## Baseline quality and performance
 
-- Unit/parity suite: 17 passing tests.
+- Unit/parity suite: 31 passing tests, plus six browser gameplay and responsive flows.
 - Packaged static site: approximately 3.2 MiB.
 - Largest emitted file: Phaser, approximately 1.38 MiB, already dynamically requested by the arena component.
 - Runtime fighter catalog: 384 fighters, approximately 0.37 MiB.
 - Current lint command incorrectly scans generated Android build output, producing thousands of irrelevant diagnostics. Source lint has only a small number of warnings; generated directories must be excluded before lint can serve as a release gate.
 
-## Immediate first implementation slice
+## Completion status
 
-- Introduce a typed settings/preferences model with reduced motion, haptics, music, and effects controls.
-- Add mobile viewport classification and safe-area scene scaffolding.
-- Replace the prototype header/footer with a game HUD and real Settings/How to Play/Microbe Lab routes accessible from the opening scene.
-- Add skippable opening-sequence state and first-launch persistence.
-- Preserve the existing start-game path and all scoring inputs exactly.
+The implementation slices above are complete. See `docs/final-mobile-refinement-report.md` for the delivered screen-by-screen experience and `docs/mobile-store-release.md` for the remaining signing, device, and submission procedure. Battle scoring remains guarded by Python-parity fixtures and was not changed by the mobile refinement.

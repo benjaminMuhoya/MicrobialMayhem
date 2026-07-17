@@ -6,7 +6,7 @@ Microbial Mayhem 1.0.0 is an offline-capable Capacitor game with native Android 
 
 ## iPhone and iPad
 
-1. Install the full current Xcode from the Mac App Store. This repository was generated with only Command Line Tools active, so simulator/archive compilation cannot be completed until full Xcode is selected.
+1. Install the full current Xcode from the Mac App Store. GitHub Actions continuously compiles an unsigned simulator application, but signing, device testing, and archiving still require your full local Xcode installation.
 2. In Terminal, run `cd web`, `npm ci`, and `npm run ios:sync`.
 3. Open `web/ios/App/App.xcodeproj` in Xcode.
 4. Select the App target, then Signing & Capabilities. Choose your Apple Developer team. Keep bundle identifier `com.microbialmayhem.game`, or replace it everywhere with an identifier you control.
@@ -19,8 +19,8 @@ Microbial Mayhem 1.0.0 is an offline-capable Capacitor game with native Android 
 
 1. In `web`, run `npm ci` and `npm run android:sync`.
 2. For local testing, run `npm run android:apk`. The debug APK appears at `web/android/app/build/outputs/apk/debug/app-debug.apk`.
-3. For Play Console, create a private upload keystore and keep it outside Git. Configure release signing through a private `keystore.properties` file or environment variables; never commit passwords or the keystore.
-4. In Android Studio choose **Build → Generate Signed Bundle / APK → Android App Bundle**. Upload the `.aab` to an internal-testing track first.
+3. Run `npm run android:bundle` to generate the unsigned Play bundle at `web/android/app/build/outputs/bundle/release/app-release.aab`. GitHub Actions also publishes this as the `microbial-mayhem-unsigned-play-bundle` workflow artifact.
+4. For Play Console, create a private upload keystore and keep it outside Git. Configure release signing through a private `keystore.properties` file or Android Studio; never commit passwords or the keystore. Sign the `.aab`, then upload it to an internal-testing track first.
 5. Complete the Data safety form consistently with the privacy policy: no account, ads, tracking, or collected player data. Provide the hosted privacy-policy URL even if collection is “none.”
 6. Supply phone and tablet screenshots, app icon, feature graphic, content rating, target audience, and scientific/educational description. Test the Play pre-launch report before production rollout.
 
