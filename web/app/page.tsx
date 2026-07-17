@@ -122,22 +122,26 @@ function FighterScreen({ fighters, roster, selected, locked, activePlayer, loadi
   );
 }
 
-function Colony({ onConfirm, cfu, setCfu, mode, setupPlayer }: { onConfirm: () => void; cfu:number; setCfu:(cfu:number)=>void; mode:GameMode; setupPlayer:1|2 }) {
-  const cells = Math.max(7, Math.round(cfu / 35));
-  const score = Math.log10(cfu + 1) / Math.log10(1001) * 10;
-  return <section className="scene colony-scene" data-testid="screen-colony">
+function Colony({ onConfirm, cfu, setCfu, mode, setupPlayer, fighter }: { onConfirm: () => void; cfu:number; setCfu:(cfu:number)=>void; mode:GameMode; setupPlayer:1|2; fighter:Fighter }) {
+  const [visualCfu,setVisualCfu]=useState(cfu); const visualRef=useRef(cfu); const profile=fighterVisualProfile(fighter);
+  useEffect(()=>{let frame=0;const animate=()=>{const current=visualRef.current,next=current+(cfu-current)*.14;visualRef.current=Math.abs(next-cfu)<1?cfu:next;setVisualCfu(Math.round(visualRef.current));if(visualRef.current!==cfu)frame=requestAnimationFrame(animate)};frame=requestAnimationFrame(animate);return()=>cancelAnimationFrame(frame)},[cfu]);
+  const cells = Math.max(7, Math.round(visualCfu / 35));
+  const stage=cfu<250?"Small culture":cfu<700?"Established culture":"Dense culture";
+  const consequence=cfu<250?"Quick to mobilize, with fewer cells contributing.":cfu<700?"A balanced population with a meaningful numbers advantage.":"A large population, though additional cells bring diminishing returns.";
+  const chooseStage=(value:number)=>{gameFeedback.cue("select",value>=900?"strong":"medium");setCfu(value)};
+  return <section className={`scene colony-scene colony-player-${setupPlayer}`} data-testid="screen-colony">
     <div className="screen-heading"><div><p className="eyebrow">{mode==="2_players"?`Player ${setupPlayer} · `:""}colony preparation</p><h2>Grow your numbers</h2></div><p>More cells add strength with diminishing returns.</p></div>
     <div className="colony-layout">
-      <div className="culture-dish" style={{"--energy": `${cfu / 1000}`} as React.CSSProperties}>
+      <div className={`culture-dish culture-shape-${profile.shape}`} style={{"--energy": `${visualCfu / 1000}`,"--colony-primary":profile.primary,"--colony-secondary":profile.secondary} as React.CSSProperties}>
         <div className="culture-dish__well">
-          {Array.from({ length: cells }).map((_, i) => <i key={i} style={{"--i": i, "--angle": `${(i * 137.5) % 360}deg`, "--radius": `${20 + (i * 17) % 38}%`} as React.CSSProperties}/>) }
-        </div><span className="dish-label">Live colony · density preview</span>
+          <div className="agar-depth"/>{Array.from({ length: cells }).map((_, i) => <i key={i} style={{"--i": i, "--angle": `${(i * 137.5) % 360}deg`, "--radius": `${20 + (i * 17) % 38}%`,"--delay":`${-(i%9)*.19}s`} as React.CSSProperties}><span/></i>) }
+        </div><span className="dish-label"><i>{fighter.fullName}</i> · live density preview</span>
       </div>
-      <div className="colony-controls"><p className="eyebrow">Colony size</p><div className="cfu-readout"><b>{cfu.toLocaleString()}</b><span>CFU</span></div><p className="colony-name">{cfu < 200 ? "A nimble micro-colony" : cfu < 650 ? "A lively, balanced culture" : "A densely packed population"}</p>
-        <div className="colony-stages" aria-label="Colony growth stages">{[["Small",150],["Medium",500],["Large",900]].map(([label,value])=><button key={label} className={cfu===value?"is-selected":""} onClick={()=>{gameFeedback.cue("select");setCfu(Number(value))}}><b>{label}</b><small>{value} CFU</small></button>)}</div>
+      <div className="colony-controls"><p className="eyebrow">Player {setupPlayer} culture · colony size</p><div className="cfu-readout"><b>{visualCfu.toLocaleString()}</b><span>CFU</span></div><p className="colony-name">{stage}</p>
+        <div className="colony-stages" aria-label="Colony growth stages">{[["Small",150],["Medium",500],["Large",900]].map(([label,value])=><button key={label} className={cfu===value?"is-selected":""} aria-pressed={cfu===value} onClick={()=>chooseStage(Number(value))}><b>{label}</b><small>{value} CFU</small></button>)}</div>
         <input aria-label="Colony forming units" type="range" min="0" max="1000" step="10" value={cfu} onChange={(event) => setCfu(Number(event.target.value))}/>
         <div className="range-labels"><span>0</span><span>1,000</span></div>
-        <div className="score-contribution"><span>Battle contribution</span><b>+{score.toFixed(1)}</b><small>of 10 points</small></div>
+        <div className="colony-consequence"><span aria-hidden="true">◌</span><p><b>{stage}</b><small>{consequence}</small></p></div>
         <button className="primary-action" onClick={onConfirm}>Lock Player {setupPlayer} colony <span>→</span></button>
       </div>
     </div>
@@ -215,7 +219,7 @@ export default function HomePage() {
     screen === "how" ? <HowToPlay/> :
     screen === "lab" ? <MicrobeLab fighters={catalog} onChoose={fighter=>{setSelected(fighter);setActivePlayer(1);setHistory(["home","lab"]);setScreen("fighter")}}/> :
     screen === "fighter" ? <FighterScreen fighters={catalog} roster={roster} selected={selected} locked={player1} activePlayer={activePlayer} loading={catalogLoading} onSelect={setSelected} onConfirm={confirmFighter} onShuffle={shuffleRoster} onResetRoster={shuffleRoster}/> :
-    screen === "colony" ? <Colony onConfirm={()=>setScreen("arsenal")} cfu={currentCfu} setCfu={setCurrentCfu} mode={mode} setupPlayer={setupPlayer}/> :
+    screen === "colony" ? <Colony onConfirm={()=>setScreen("arsenal")} cfu={currentCfu} setCfu={setCurrentCfu} mode={mode} setupPlayer={setupPlayer} fighter={setupPlayer===1?p1:p2}/> :
     screen === "arsenal" ? <Arsenal onConfirm={confirmArsenal} active={currentArsenal} setActive={setCurrentArsenal} fighter={setupPlayer===1?p1:p2} mode={mode} setupPlayer={setupPlayer}/> :
     screen === "environment" ? <EnvironmentScreen go={setScreen} value={environment} setValue={setEnvironment} mode={mode} previewFor={env=>scoreBattle({mode,seed:battleSeed,environment:env,player:p1,opponent:p2,playerColonyCfu:player1Cfu,opponentColonyCfu:player2Cfu,playerArsenal:player1Arsenal,opponentArsenal:player2Arsenal})}/> :
     screen === "preview" ? <Preview go={setScreen} mode={mode} player={p1} opponent={p2} playerCfu={player1Cfu} opponentCfu={player2Cfu} playerArsenal={player1Arsenal} opponentArsenal={player2Arsenal} environment={environment} result={result}/> :

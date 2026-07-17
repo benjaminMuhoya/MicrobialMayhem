@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PwaRuntime } from "./components/PwaRuntime";
 
+/* eslint-disable @next/next/no-css-tags -- the static mobile export packages this offline scene stylesheet */
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -31,6 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head><link rel="stylesheet" href="./colony.css" /></head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <PwaRuntime />{children}
       </body>

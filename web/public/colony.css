@@ -1,0 +1,25 @@
+/* Living colony growth: representative binary fission preserves the actual CFU input. */
+.culture-dish { perspective: 900px; filter: drop-shadow(0 34px 38px rgba(0,0,0,.38)); }
+.culture-dish::before { content:""; position:absolute; inset:5%; border-radius:50%; border:12px solid rgba(205,255,233,.08); box-shadow:inset 0 -26px 35px rgba(0,0,0,.42),inset 0 10px 16px rgba(225,255,244,.08),0 18px 0 rgba(1,11,8,.22); transform:rotateX(7deg); }
+.culture-dish__well { transform:rotateX(7deg); box-shadow:inset 0 0 90px color-mix(in srgb,var(--colony-primary) 12%,transparent); }
+.agar-depth { position:absolute; inset:6%; border-radius:50%; background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.08),transparent 30%),radial-gradient(circle,color-mix(in srgb,var(--colony-secondary) 12%,transparent),transparent 68%); animation:agarBreathe 5s ease-in-out infinite; }
+.culture-dish__well>i { position:absolute; display:block; background:transparent!important; box-shadow:none!important; transform-origin:center; animation:cellArrive .42s cubic-bezier(.2,.9,.2,1) both,cellDivide calc(2.4s + (var(--i) % 5)*.2s) ease-in-out infinite var(--delay)!important; transition:left .35s ease,top .35s ease; }
+.culture-dish__well>i>span,.culture-dish__well>i::after { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(135deg,var(--colony-primary),var(--colony-secondary)); box-shadow:0 0 calc(5px + var(--energy)*9px) color-mix(in srgb,var(--colony-primary) 52%,transparent); }
+.culture-dish__well>i::after { opacity:0; transform:translateX(0); }
+.culture-dish__well>i::before { z-index:2; background:rgba(3,35,25,.72); }
+.culture-shape-coccus .culture-dish__well>i,.culture-shape-cluster .culture-dish__well>i { width:calc(7px + var(--energy)*8px); height:calc(7px + var(--energy)*8px); border-radius:50%; }
+.culture-shape-chain .culture-dish__well>i { width:calc(18px + var(--energy)*9px); height:6px; background:radial-gradient(circle,var(--colony-primary) 0 35%,transparent 39%) 0 0/6px 6px!important; }
+.culture-shape-filament .culture-dish__well>i { width:calc(22px + var(--energy)*16px); height:4px; border-radius:999px; }
+.culture-shape-spiral .culture-dish__well>i { width:18px; height:7px; border-radius:50%; border-top:2px solid var(--colony-secondary); }
+.culture-shape-vibrio .culture-dish__well>i,.culture-shape-curved .culture-dish__well>i { border-radius:80% 20% 80% 20%; }
+.colony-player-2 .culture-dish { filter:drop-shadow(0 34px 38px rgba(0,0,0,.38)) hue-rotate(18deg); }
+.dish-label { max-width:78%; text-align:center; }
+.colony-consequence { display:flex; align-items:center; gap:14px; margin:28px 0; padding:17px; border:1px solid rgba(123,242,188,.2); border-radius:19px; background:rgba(123,242,188,.06); }
+.colony-consequence>span { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:rgba(123,242,188,.13); color:var(--mint); font-size:1.5rem; }
+.colony-consequence p { margin:0; flex:1; }
+.colony-consequence b,.colony-consequence small { display:block; }
+.colony-consequence small { margin-top:5px; color:var(--muted); line-height:1.4; }
+@keyframes cellArrive { from { opacity:0; scale:.15; } to { opacity:calc(.42 + var(--energy)*.45); scale:1; } }
+@keyframes cellDivide { 0%,25% { scale:1 1; } 45%,58% { scale:1.8 .9; } 70%,100% { scale:1 1; } }
+@keyframes agarBreathe { 50% { opacity:.72; transform:scale(1.02); } }
+@media(max-width:620px) { .culture-dish { width:min(88vw,480px); } .colony-layout { gap:22px; } .colony-controls { padding:22px; } .cfu-readout b { font-size:clamp(3.6rem,18vw,5.4rem); } }

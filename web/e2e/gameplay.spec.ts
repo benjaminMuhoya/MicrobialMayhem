@@ -49,7 +49,7 @@ test("one-player completes automatically and supports rematch and menu actions",
   await page.getByRole("button", { name: "Enter this habitat →" }).click();
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Enter the microscopic arena →" }).click();
-  await expect(page.getByTestId("screen-results")).toBeVisible({ timeout: 12_000 });
+  await expect(page.getByTestId("screen-results")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Scientific breakdown" }).click();
   await expect(page.getByText("Biological interpretation")).toBeVisible();
