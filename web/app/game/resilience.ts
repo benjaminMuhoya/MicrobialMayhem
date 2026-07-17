@@ -1,7 +1,7 @@
 import type { Environment, Fighter, GameMode } from "./types";
 import type { MatchVariant } from "./progression";
 
-export const APP_VERSION="0.5.0";
+export const APP_VERSION="1.0.0";
 export type RecoverableScreen="fighter"|"colony"|"arsenal"|"environment"|"preview";
 export interface SavedMatchSession{version:1;savedAt:string;screen:RecoverableScreen;mode:GameMode;variant:MatchVariant;player1Id:string|null;player2Id:string|null;activePlayer:1|2;setupPlayer:1|2;player1Cfu:number;player2Cfu:number;player1Arsenal:boolean;player2Arsenal:boolean;environment:Environment;battleSeed:number}
 export interface CatalogEnvelope{schemaVersion:number;contentVersion?:string;fighters:Fighter[]}

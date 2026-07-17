@@ -1,4 +1,4 @@
-const CACHE_VERSION = "microbial-mayhem-v0.4.0";
+const CACHE_VERSION = "microbial-mayhem-v1.0.0";
 const CORE = [
   "./",
   "./manifest.webmanifest",
