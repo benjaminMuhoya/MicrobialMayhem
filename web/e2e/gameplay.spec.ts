@@ -46,6 +46,9 @@ test("one-player completes automatically and supports rematch and menu actions",
   await enterCulture(page);
   await chooseVisibleFighter(page, 1);
   await setupPlayer(page, 1);
+  const coldArena = page.getByRole("option", { name: /Cold/ });
+  await coldArena.click();
+  await expect(coldArena).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "Enter this habitat →" }).click();
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Enter the microscopic arena →" }).click();
