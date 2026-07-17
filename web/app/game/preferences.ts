@@ -4,6 +4,7 @@ export interface GamePreferences {
   haptics: boolean;
   reducedMotion: boolean;
   captions: boolean;
+  colorBlind: boolean;
   introSeen: boolean;
   tutorialSeen: boolean;
 }
@@ -13,6 +14,7 @@ export const DEFAULT_PREFERENCES: GamePreferences = {
   haptics: true,
   reducedMotion: false,
   captions: true,
+  colorBlind: false,
   introSeen: false,
   tutorialSeen: false,
 };

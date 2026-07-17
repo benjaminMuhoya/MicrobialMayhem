@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./progression.css";
+import "./resilience.css";
+import "./accessibility.css";
 import { PwaRuntime } from "./components/PwaRuntime";
 
 /* eslint-disable @next/next/no-css-tags -- the static mobile export packages this offline scene stylesheet */
@@ -33,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head><link rel="stylesheet" href="./colony.css" /><link rel="stylesheet" href="./environment.css" /><link rel="stylesheet" href="./battle.css" /><link rel="stylesheet" href="./tutorial.css" /><link rel="stylesheet" href="./results.css" /><link rel="stylesheet" href="./progression.css" /><link rel="stylesheet" href="./resilience.css" /></head>
+      <head><link rel="stylesheet" href="./colony.css" /><link rel="stylesheet" href="./environment.css" /><link rel="stylesheet" href="./battle.css" /><link rel="stylesheet" href="./tutorial.css" /><link rel="stylesheet" href="./results.css" /></head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <PwaRuntime />{children}
       </body>
