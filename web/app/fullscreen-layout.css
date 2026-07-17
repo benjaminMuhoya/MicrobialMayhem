@@ -1,0 +1,393 @@
+/* The installed game owns the viewport. Long content scrolls only inside the
+   scene component that contains it; the document itself never scrolls. */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body { position: fixed; inset: 0; }
+
+.game-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-header {
+  width: 100%;
+  min-width: 0;
+  padding-block: clamp(8px, 1.8dvh, 18px);
+}
+
+.app-header.game-hud {
+  position: relative;
+  inset: auto;
+  height: auto;
+  pointer-events: auto;
+}
+
+.screen-frame {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+  animation-name: fullscreenReveal;
+}
+.game-shell .screen-frame { padding-top: 0; }
+.game-shell:has([aria-modal="true"]) .screen-frame { z-index: 100; }
+@keyframes fullscreenReveal { from { opacity: 0; } to { opacity: 1; } }
+
+.scene {
+  width: min(1400px, 94vw);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(8px, 1.8dvh, 22px) 0 max(10px, env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+
+.game-shell .scene { min-height: 0; }
+
+.screen-heading {
+  min-width: 0;
+  margin-bottom: clamp(8px, 1.8dvh, 18px);
+}
+
+.screen-heading h2 { font-size: clamp(1.65rem, 4.5dvh, 3.6rem); }
+.screen-heading > * { min-width: 0; }
+
+/* Fighter selection: fixed heading, flexible preview/roster, native roster scroll. */
+.explorer {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.explorer-grid,
+.roster-panel,
+.fighter-focus,
+.fighter-stage,
+.fighter-info { min-height: 0; }
+
+.explorer-grid { height: auto; overflow: hidden; }
+.roster-panel { overflow: hidden; }
+.game-shell .roster-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  flex: 1 1 0;
+  height: auto;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: none;
+}
+.game-shell .roster-list button { flex: none; width: 100%; scroll-snap-align: none; }
+.fighter-focus { height: 100%; }
+.fighter-stage { min-height: 0; }
+.fighter-info { overflow: hidden; }
+
+/* Setup screens keep their action controls inside the viewport. */
+.colony-scene {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.colony-layout { height: 100%; min-height: 0; }
+.culture-dish { width: min(58dvh, 48vw, 620px); max-height: 100%; }
+.game-shell .colony-controls { min-height: 0; max-height: 100%; overflow: hidden; padding: clamp(14px, 2.6dvh, 34px); }
+.cfu-readout b { font-size: clamp(2.8rem, 8dvh, 6rem); }
+.colony-controls input[type="range"] { margin-block: clamp(12px, 2dvh, 24px) 4px; }
+.colony-consequence { margin-block: clamp(10px, 1.8dvh, 20px); }
+
+.prep-scene {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.prep-scene > .screen-heading { align-self: end; }
+.gene-stage { min-height: 0; height: 100%; }
+.prep-controls { align-self: center; max-height: 100%; padding: clamp(16px, 3dvh, 36px); }
+.binary-choice { margin-block: clamp(12px, 2.5dvh, 24px); }
+
+.environment-scene {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.environment-grid { min-height: 0; overflow: hidden; }
+.environment-grid button { min-width: 0; min-height: 0; }
+.environment-confirm { margin-top: clamp(8px, 1.5dvh, 16px); }
+
+.preview-scene {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.preview-scene .versus { min-height: 0; }
+.preview-scene .versus .microbe { margin-block: clamp(8px, 3dvh, 28px); }
+.preview-scene .centered-action { margin-top: clamp(8px, 1.5dvh, 18px); }
+
+.arena-scene { height: 100%; min-height: 0; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+.phaser-arena { height: min(62dvh, 500px); margin-top: clamp(4px, 2dvh, 18px); }
+
+/* Results are the designated long-content panel; actions stay available. */
+.results-scene {
+  height: 100%;
+  max-width: 1120px;
+  padding-bottom: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.result-actions {
+  position: sticky;
+  z-index: 8;
+  bottom: 0;
+  padding: 10px max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, #071814 20%);
+}
+
+/* Existing information screens are bounded scroll panels, not page scroll. */
+.native-panel-scene,
+.lab-scene,
+.discovery-scene {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-backdrop,
+.quick-fact,
+.pause-overlay { z-index: 200; overflow: hidden; }
+.game-shell .modal-backdrop,
+.game-shell .quick-fact,
+.game-shell .pause-overlay { z-index: 200 !important; }
+.biology-modal,
+.quick-fact > div,
+.pause-overlay > div { max-height: calc(100dvh - 28px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+
+.viewport-tablet-portrait .fighter-focus {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(210px, .42fr) minmax(0, .58fr);
+}
+.viewport-tablet-portrait .fighter-stage { min-height: 0; }
+.viewport-tablet-portrait .fighter-info,
+.viewport-tablet-landscape .fighter-info {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px;
+  overflow: hidden;
+}
+.viewport-tablet-portrait .fighter-info h3,
+.viewport-tablet-landscape .fighter-info h3 { font-size: clamp(1.35rem, 2.8vw, 2.2rem); }
+.viewport-tablet-portrait .fighter-identity,
+.viewport-tablet-landscape .fighter-identity { margin-block: 7px; padding: 8px; }
+.viewport-tablet-portrait .fact-row,
+.viewport-tablet-landscape .fact-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-block: 8px; font-size: .72rem; }
+.viewport-tablet-portrait .fact-row span,
+.viewport-tablet-landscape .fact-row span { min-width: 0; padding: 5px; overflow: hidden; }
+.viewport-tablet-portrait .strength-chips,
+.viewport-tablet-landscape .strength-chips,
+.viewport-tablet-portrait .ability,
+.viewport-tablet-landscape .ability { display: none; }
+.viewport-tablet-portrait .fighter-actions,
+.viewport-tablet-landscape .fighter-actions { margin-top: auto; gap: 6px; }
+.viewport-tablet-portrait .fighter-actions button,
+.viewport-tablet-landscape .fighter-actions button { min-width: 0; min-height: 48px; padding: 8px 10px; font-size: .76rem; }
+.viewport-tablet-portrait .fighter-actions .primary-action,
+.viewport-tablet-landscape .fighter-actions .primary-action { gap: 8px; }
+.viewport-tablet-portrait .colony-controls {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px;
+}
+.viewport-tablet-portrait .colony-consequence { display: none; }
+.viewport-tablet-portrait .colony-stages { margin-top: 10px; }
+.viewport-tablet-portrait .colony-controls input[type="range"] { margin-block: 14px 3px; }
+.viewport-tablet-portrait .colony-controls .primary-action { margin-top: auto; min-height: 52px; padding-block: 10px; }
+
+@media (max-width: 760px) {
+  .app-header { padding-inline: 12px; }
+  .brand__mark { width: 34px; height: 34px; }
+  .prototype-nav { display: none; }
+  .scene { width: calc(100vw - 20px); }
+  .screen-heading > p { margin: 0; font-size: .75rem; }
+
+  .environment-grid {
+    display: flex !important;
+    height: 100%;
+    margin-inline: 0;
+    padding: 4px 5vw 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .environment-grid button { flex-basis: min(68vw, 300px); height: 100%; min-height: 0; }
+  .environment-confirm { position: relative; bottom: auto; padding: 10px 12px; }
+  .environment-confirm p small { display: none; }
+
+  .result-actions { flex-wrap: wrap; margin-top: 14px; }
+  .result-actions button { min-height: 44px; }
+}
+
+@media (orientation: portrait) and (max-width: 620px) {
+  .explorer .screen-heading {
+    display: flex;
+    align-items: end;
+    min-height: 0;
+    margin-bottom: 6px;
+  }
+  .explorer .screen-heading > p { display: none; }
+  .explorer .screen-heading h2 { font-size: clamp(1.55rem, 7vw, 2.1rem); }
+  .explorer-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(250px, 1.1fr) minmax(205px, .9fr);
+  }
+  .explorer-grid:has(.empty-focus) { grid-template-rows: minmax(0, 1fr) 0; }
+  .roster-panel { grid-row: 1; order: initial; padding: 9px; }
+  .fighter-focus { grid-row: 2; order: initial; }
+  .roster-panel .taxonomy-filters,
+  .roster-panel .morphology-filters { padding-block: 3px 0; }
+  .roster-panel .taxonomy-filters button,
+  .roster-panel .morphology-filters button { min-height: 32px; padding-block: 4px; }
+  .roster-panel .search-status { margin-block: 4px; font-size: .66rem; }
+  .roster-panel .quiet-action { min-height: 38px; margin-top: 5px; padding-block: 6px; }
+  .roster-list { max-height: none; }
+  .fighter-stage { min-height: 0 !important; }
+
+  .colony-layout { grid-template-columns: 1fr; grid-template-rows: 150px minmax(0, 1fr); gap: 8px; }
+  .game-shell .culture-dish { width: min(18dvh, 42vw); justify-self: center; }
+  .game-shell .colony-layout { align-items: stretch; }
+  .game-shell .colony-controls { display: flex; flex-direction: column; height: auto; max-height: none; padding: 9px 12px; }
+  .game-shell .cfu-readout b { font-size: clamp(2.5rem, 8dvh, 4rem); }
+  .colony-controls > .eyebrow { margin-bottom: 2px; }
+  .colony-name { margin-block: 3px; font-size: 1rem; }
+  .game-shell .colony-consequence { display: none; }
+  .colony-stages { margin-top: 5px; }
+  .colony-stages button { min-height: 50px; }
+  .game-shell .colony-controls input[type="range"] { margin-block: 8px 2px; }
+  .colony-controls .primary-action { flex: 0 0 auto; min-height: 48px; padding-block: 10px; margin-top: auto; }
+
+  .prep-scene { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, .8fr) auto; gap: 8px; }
+  .prep-scene > .screen-heading { grid-column: 1; }
+  .gene-stage { min-height: 0; }
+  .gene-stage > .microbe { width: min(45vw, 180px); height: min(28vw, 110px); }
+  .gene-chain { display: none; }
+  .prep-controls p { margin-top: 0; }
+
+  .preview-scene .screen-heading > p:last-child { display: none; }
+  .preview-scene .versus { gap: 6px; }
+  .preview-scene .versus article { min-width: 0; }
+  .preview-scene .versus .microbe { width: min(34vw, 135px); height: min(21vw, 84px); }
+  .preview-scene .versus h3 { font-size: clamp(.85rem, 4vw, 1.2rem); overflow-wrap: anywhere; }
+  .preview-scene .versus dl { display: grid; gap: 2px; }
+  .preview-scene .versus dl div { min-width: 0; padding: 7px 3px; }
+  .preview-scene .versus-mark { width: 44px; height: 44px; }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  .app-header { padding-block: 4px; }
+  .brand__mark { width: 30px; height: 30px; }
+  .brand b { font-size: .72rem; }
+  .brand em { font-size: .85rem; }
+  .scene { padding-top: 4px; }
+  .eyebrow { margin-bottom: 4px; }
+  .screen-heading { margin-bottom: 5px; }
+  .screen-heading h2 { font-size: clamp(1.3rem, 5dvh, 2rem); }
+
+  .explorer-grid { height: auto; }
+  .roster-list { max-height: none !important; }
+  .fighter-stage { min-height: 0 !important; }
+  .roster-panel .morphology-filters,
+  .roster-panel .search-status { display: none; }
+  .roster-panel { padding: 8px; }
+  .roster-panel .taxonomy-filters { padding-block: 3px 0; }
+  .roster-panel .quiet-action { min-height: 36px; margin-top: 4px; padding-block: 5px; }
+  .fighter-info { display: flex; flex-direction: column; padding: 9px !important; }
+  .fighter-info > .eyebrow,
+  .fighter-info .fighter-identity,
+  .fighter-info .fact-row,
+  .fighter-info .strength-chips,
+  .fighter-info .ability { display: none !important; }
+  .fighter-info h3 { font-size: clamp(1rem, 4dvh, 1.35rem); line-height: 1.05; }
+  .fighter-info .strain { margin-block: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fighter-actions { margin-top: auto; }
+  .fighter-actions button { min-height: 44px; padding-block: 7px; }
+
+  .colony-layout { grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr); gap: 12px; }
+  .game-shell .culture-dish { width: min(54dvh, 35vw); }
+  .game-shell .colony-controls { display: flex; flex-direction: column; height: auto; max-height: none; padding: 8px 12px; }
+  .game-shell .cfu-readout b { font-size: clamp(2.2rem, 12dvh, 3.5rem); }
+  .colony-controls > .eyebrow { margin-bottom: 2px; }
+  .colony-name { display: none; }
+  .game-shell .colony-consequence { display: none; }
+  .colony-stages { margin-top: 4px; }
+  .colony-stages button { min-height: 44px; }
+  .game-shell .colony-controls input[type="range"] { margin-block: 6px 2px; }
+  .colony-controls .primary-action { min-height: 44px; padding-block: 7px; margin-top: auto; }
+
+  .prep-scene { gap: 12px; }
+  .gene-stage { min-height: 0; }
+  .gene-stage > .microbe { width: min(26vw, 190px); height: min(16vw, 118px); }
+  .gene-chain { display: none; }
+  .prep-controls { padding: 10px 14px; }
+  .prep-controls p { margin: 0; }
+  .prep-controls p span { display: none; }
+  .prep-controls p b { font-size: 1.1rem; }
+  .prep-controls .binary-choice { margin-block: 6px; }
+  .prep-controls .binary-choice button { min-height: 44px; padding-block: 7px; }
+  .prep-controls .primary-action { width: 100%; min-height: 44px; padding-block: 7px; }
+
+  .environment-grid button { padding: 10px; }
+  .environment-grid button i { margin-bottom: 8px; }
+  .environment-grid button em { display: none; }
+  .environment-confirm { padding: 8px 12px; }
+  .environment-confirm p small { display: none; }
+
+  .preview-scene .screen-heading > p:last-child { display: none; }
+  .preview-scene .versus .microbe { width: min(24vw, 180px); height: min(14vw, 108px); margin-block: 4px; }
+  .preview-scene .versus h3 { font-size: clamp(.9rem, 4dvh, 1.4rem); }
+  .preview-scene .versus dl div { padding-block: 4px; }
+  .preview-scene .centered-action { margin-top: 4px; }
+
+  .arena-top { padding-top: 4px; }
+  .phaser-arena { height: min(64dvh, 330px); margin-top: 2px; }
+  .battle-caption { bottom: max(3px, env(safe-area-inset-bottom)); }
+
+  .results-scene { padding-top: 3px; }
+  .result-hero { grid-template-columns: 130px 1fr; gap: 14px; }
+  .result-orbit { width: 125px; height: 125px; }
+  .result-orbit .microbe { width: 95px; height: 58px; }
+  .result-lede { margin-block: 6px !important; }
+  .score-pair { margin-block: 8px; }
+}
+
+/* Keep the existing fighter-details action available without restoring the
+   full descriptive ability card in compact layouts. */
+:is(.viewport-phone-portrait,.viewport-phone-landscape,.viewport-tablet-portrait,.viewport-tablet-landscape) .fighter-info .ability {
+  display: flex !important;
+  min-height: 40px;
+  margin-block: 5px;
+  padding: 5px 8px;
+}
+:is(.viewport-phone-portrait,.viewport-phone-landscape,.viewport-tablet-portrait,.viewport-tablet-landscape) .fighter-info .ability > :not(button) { display: none; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape,.viewport-tablet-portrait,.viewport-tablet-landscape) .fighter-info .ability button {
+  width: 100%;
+  min-height: 36px;
+  text-align: center;
+}

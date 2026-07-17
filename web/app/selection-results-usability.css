@@ -1,5 +1,23 @@
 /* Real-device selection and result-card fixes. These rules intentionally stay
    scoped to the affected scenes so the established game layouts remain intact. */
+html {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.game-shell {
+  min-height: 100dvh;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+.screen-frame { min-height: calc(100dvh - 132px); }
+
 .theme-fighter,
 .theme-fighter .screen-frame,
 .explorer,
@@ -16,6 +34,7 @@
 .roster-list {
   display: grid;
   grid-template-columns: 1fr;
+  min-height: 0;
   max-height: min(620px, 66svh);
   overflow-x: hidden;
   overflow-y: auto;
@@ -24,7 +43,9 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
 }
-.roster-list button { width: 100%; min-width: 0; flex: none; scroll-snap-align: none; }
+.roster-list button { width: 100%; min-width: 0; flex: none; scroll-snap-align: none; touch-action: pan-y; }
+.roster-list .microbe,
+.roster-list .microbe * { pointer-events: none; }
 .roster-list button > span { min-width: 0; overflow: hidden; }
 .roster-list button > span > i {
   display: -webkit-box;
@@ -43,17 +64,35 @@
 .roster-list button.is-selected { transform: none; }
 .empty-focus { display: grid; place-items: center; min-height: 180px; padding: 24px; text-align: center; }
 
+.comparison-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+  overflow: hidden;
+  touch-action: none;
+  background: rgba(2,12,10,.82);
+  backdrop-filter: blur(14px);
+}
 .comparison-panel {
-  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  width: min(940px,100%);
+  max-height: calc(100dvh - max(28px,env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  overflow: hidden;
   padding: clamp(18px, 3vw, 30px);
   border: 1px solid rgba(173,139,255,.4);
   border-radius: 28px;
   background: radial-gradient(circle at 50% 0,rgba(173,139,255,.12),transparent 40%),rgba(8,25,22,.92);
   box-shadow: 0 20px 60px rgba(0,0,0,.28);
 }
-.comparison-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.comparison-heading { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 20px; }
 .comparison-heading h3 { margin: 0; font-size: clamp(1.4rem,3vw,2.2rem); }
-.comparison-heading > p { max-width: 420px; margin: 0; color: var(--muted); line-height: 1.45; }
+.comparison-close { flex: 0 0 48px; width: 48px; height: 48px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); font-size: 1.8rem; cursor: pointer; }
+.comparison-scroll { min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.comparison-help { margin: 10px 0 0; color: var(--muted); line-height: 1.45; }
 .comparison-fighters { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin: 22px 0; }
 .comparison-fighters article { position: relative; display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 14px; min-width: 0; padding: 16px; border: 2px solid var(--line); border-radius: 20px; }
 .comparison-fighters article.is-preview { border-color: var(--mint); background: rgba(123,242,188,.08); }
@@ -69,7 +108,7 @@
 .comparison-traits span { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
 .comparison-traits span:nth-child(2) { color: #dff8ea; }
 .comparison-traits span:nth-child(3) { color: #e4dbff; }
-.comparison-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.comparison-actions { display: flex; flex: 0 0 auto; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); background: rgba(8,25,22,.96); }
 
 .factor-list button { transition: transform .15s ease,border-color .15s ease,background .15s ease; touch-action: manipulation; }
 .factor-list button:active { transform: scale(.985); border-color: var(--lime); background: rgba(215,241,113,.12); }
@@ -83,7 +122,7 @@
 
 @media (max-width: 900px) {
   .viewport-tablet-portrait .explorer-grid { grid-template-columns: minmax(290px,.8fr) minmax(0,1.2fr); }
-  .viewport-tablet-portrait .roster-list { display: grid; max-height: 650px; overflow-x: hidden; overflow-y: auto; scroll-snap-type: none; }
+  .viewport-tablet-portrait .roster-list { display: grid; max-height: min(650px,56dvh); overflow-x: hidden; overflow-y: auto; scroll-snap-type: none; }
   .viewport-tablet-portrait .roster-list button { flex: none; }
   .viewport-tablet-portrait .fighter-focus { display: block; }
   .viewport-tablet-portrait .fighter-stage { min-height: 320px; }
@@ -140,14 +179,16 @@
   .viewport-phone-portrait .fighter-info .ability { display: none; }
   .viewport-phone-portrait .fighter-actions { gap: 7px; margin-top: 12px; }
   .viewport-phone-portrait .fighter-actions button { min-width: 0; padding: 12px 9px; font-size: .72rem; }
-  .comparison-heading { display: block; }
-  .comparison-heading > p { margin-top: 8px; }
-  .comparison-fighters { gap: 7px; }
-  .comparison-fighters article { grid-template-columns: 1fr; justify-items: center; min-height: 150px; padding: 28px 10px 12px; text-align: center; }
+  .comparison-backdrop { place-items: stretch; }
+  .comparison-panel { width: 100%; max-height: 100%; padding: 15px; border-radius: 22px; }
+  .comparison-fighters { grid-template-columns: 1fr; gap: 7px; }
+  .comparison-fighters > strong { text-align: center; }
+  .comparison-fighters article { grid-template-columns: 74px minmax(0,1fr); justify-items: start; min-height: 100px; padding: 28px 10px 12px; text-align: left; }
   .comparison-fighters article > span { left: 7px; right: 7px; text-align: center; }
   .comparison-fighters .microbe { display: block; }
   .comparison-fighters b { padding-top: 0; font-size: .78rem; }
-  .comparison-traits > div { grid-template-columns: 88px minmax(0,1fr) minmax(0,1fr); gap: 8px; padding: 11px 9px; font-size: .72rem; }
+  .comparison-traits > div { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; padding: 11px 9px; font-size: .72rem; }
+  .comparison-traits > div > b { grid-column: 1/-1; }
   .comparison-traits b { font-size: .6rem; }
   .comparison-actions { display: grid; }
   .comparison-actions .primary-action { width: 100%; }
@@ -169,5 +210,10 @@
   .viewport-phone-landscape .fighter-info .strength-chips,.viewport-phone-landscape .fighter-info .ability { display: none; }
   .viewport-phone-landscape .fighter-actions { gap: 6px; }
   .viewport-phone-landscape .fighter-actions button { min-width: 0; padding-inline: 10px; font-size: .72rem; }
-  .viewport-phone-landscape .comparison-panel { margin-top: 10px; }
+  .viewport-phone-landscape .comparison-backdrop { place-items: center; }
+  .viewport-phone-landscape .comparison-panel { width: min(760px,100%); max-height: 100%; padding: 12px; }
+  .viewport-phone-landscape .comparison-fighters { grid-template-columns: 1fr auto 1fr; }
+  .viewport-phone-landscape .comparison-fighters article { grid-template-columns: 62px minmax(0,1fr); min-height: 82px; }
+  .viewport-phone-landscape .comparison-traits > div { grid-template-columns: 100px minmax(0,1fr) minmax(0,1fr); }
+  .viewport-phone-landscape .comparison-traits > div > b { grid-column: auto; }
 }
