@@ -34,6 +34,8 @@ test("prototype includes six screens and responsive accessibility rules", async 
   assert.match(page, /Show different bacteria/);
   assert.match(page, /That is why we need more research/);
   assert.match(page, /Biological interpretation/);
+  assert.match(page, /Scientific upset/);
+  assert.match(page, /Concept challenges/);
   assert.doesNotMatch(page, /Biology first|Outcome precomputed|8\.0s|animation dramatizes/i);
   for (const shape of ["coccus", "rod", "vibrio", "spiral", "filament", "irregular"]) assert.match(page + css, new RegExp(`microbe--${shape}`));
   for (const detail of ["microbe__face", "microbe__pili", "microbe__capsule", "microbe__satellites"]) assert.match(page + css, new RegExp(detail));

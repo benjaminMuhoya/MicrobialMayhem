@@ -5,6 +5,7 @@ import "./progression.css";
 import "./resilience.css";
 import "./accessibility.css";
 import "./performance.css";
+import "./replayability.css";
 import { PwaRuntime } from "./components/PwaRuntime";
 
 /* eslint-disable @next/next/no-css-tags -- the static mobile export packages this offline scene stylesheet */
