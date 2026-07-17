@@ -61,6 +61,7 @@ test("packages original modular audio for offline mobile play", async () => {
   assert.match(feedback, /visibilitychange|suspend|resume/);
   assert.match(feedback, /lastCue/);
   for (const channel of ["interface", "character", "ambience", "impact", "reveal"]) assert.match(feedback, new RegExp(channel));
+  for (const environment of ["cold", "hot", "acid", "antibiotic", "salty", "alkaline", "neutral"]) assert.match(feedback, new RegExp(`${environment}:`));
   assert.match(feedback, /@capacitor\/haptics/);
   assert.match(feedback, /subscribe\(listener/);
 });

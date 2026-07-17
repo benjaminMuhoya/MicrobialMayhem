@@ -1,0 +1,7 @@
+@media(min-width:900px) and (min-height:700px) and (orientation:landscape){.viewport-tablet-landscape .selecting-player-two{position:relative}.viewport-tablet-landscape .selecting-player-two .locked-player{display:grid;left:0;right:auto;top:170px;width:236px;min-height:500px;grid-template-columns:1fr;grid-template-rows:auto 190px auto auto;align-content:start;justify-items:center;gap:14px;padding:24px;text-align:center}.viewport-tablet-landscape .selecting-player-two .locked-player>span{grid-row:auto;width:max-content}.viewport-tablet-landscape .selecting-player-two .locked-player .microbe{grid-row:auto;width:190px;height:118px}.viewport-tablet-landscape .selecting-player-two .locked-player b,.viewport-tablet-landscape .selecting-player-two .locked-player small{grid-column:auto;overflow-wrap:anywhere}.viewport-tablet-landscape .selecting-player-two .explorer-grid{margin-left:258px;grid-template-columns:minmax(230px,.5fr) 1.5fr}.viewport-tablet-landscape .selecting-player-two .fighter-focus{grid-template-columns:.8fr 1.2fr}.viewport-tablet-landscape .selecting-player-two .fighter-stage{min-height:500px}.viewport-tablet-landscape .selecting-player-two .fighter-info{padding:30px}}
+/* Mobile accessibility baseline for the persistent home control. */
+.brand {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 2px;
+}

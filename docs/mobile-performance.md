@@ -24,6 +24,6 @@ The Phaser engine is a separate dynamic chunk. It is not requested on the menu, 
 ## Verification
 
 - Production build succeeds.
-- 29 unit/parity tests pass, including quality-tier limits.
+- 29 unit/parity tests pass, including quality-tier limits. Six browser flows also pass across representative phone portrait/landscape and iPad portrait/landscape layouts, including the iPad two-player split composition and viewport-overflow checks.
 - Three complete Chromium interaction flows pass against the static package without browser errors or missing assets.
 - Physical-device frame rate, battery, thermal behavior, launch time, and audio latency still require final measurement on the exact supported iPhone/iPad/Android device matrix before store submission.

@@ -25,7 +25,7 @@ Reusable systems retained: scoring, catalog/search, deterministic RNG, environme
 
 ## 3. Revised screen flow
 
-Home presents the cinematic dish and direct access to modes, settings, tutorial, lab, and discoveries. Fighter selection behaves like a character roster. Colony setup grows a living dish. Arsenal setup only presents documented chemistry. Environment selection previews the shared arena. Versus introduces both distinct organisms. Battle is a pauseable biological spectacle. Results reveal winner, decisive evidence, and deeper science progressively. Microbe Lab supports taxonomy, inspection, and favorites. Discoveries collects matches, traits, achievements, and concept challenges. Settings controls audio, haptics, captions, motion, color-blind presentation, and tutorial replay. Game Information contains version, privacy, source, update, and credit details.
+Home presents the cinematic dish and direct access to modes, settings, tutorial, lab, and discoveries. Fighter selection behaves like a character roster, including a dedicated split composition for independent Player 1 and Player 2 selection on landscape iPad. Colony setup grows a living dish. Arsenal setup only presents documented chemistry. Environment selection previews the shared arena and gives each habitat a distinct audible/captioned cue. Versus introduces both distinct organisms. Battle is a pauseable biological spectacle. Results reveal winner, decisive evidence, and deeper science progressively. Microbe Lab supports taxonomy, inspection, and favorites. Discoveries collects matches, traits, achievements, and concept challenges. Settings controls audio, haptics, captions, motion, color-blind presentation, and tutorial replay. Game Information contains version, privacy, source, update, and credit details.
 
 ## 4. File inventory
 
@@ -44,7 +44,7 @@ The Git history from `0fa4714` through `08f5437` provides the authoritative phas
 
 ## 5. Running and testing
 
-From `web`: run `npm ci`, `npm run dev`, and open the shown local URL. Use `npm run lint`, `npm test`, and `npm run test:e2e` for validation. `npm run build:pages` produces `web/dist/pages`. The deployed game is https://benjaminmuhoya.github.io/MicrobialMayhem/.
+From `web`: run `npm ci`, `npm run dev`, and open the shown local URL. Use `npm run lint`, `npm test`, and `npm run test:e2e` for validation. The current suite passes 29 unit/parity checks and six end-to-end flows, including phone portrait, phone landscape, iPad portrait, iPad landscape two-player selection, one-player, and two-player gameplay. `npm run build:pages` produces `web/dist/pages`. The deployed game is https://benjaminmuhoya.github.io/MicrobialMayhem/.
 
 ## 6. Mobile packaging
 
