@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PhaserArena } from "./components/PhaserArena";
 import { scoreBattle } from "./game/scoring";
 import type { BattleResult, Environment, Fighter, GameMode } from "./game/types";
@@ -22,7 +22,7 @@ const battleFighters: Fighter[] = [
 function Microbe({ tone = "mint", compact = false, fighter, shape }: { tone?: string; compact?: boolean; fighter?:Fighter; shape?:string }) {
   const profile=fighter?fighterVisualProfile(fighter):{shape:shape||"irregular",appendage:shape==="coccus"?"pili":"polar",expression:"cheery",primary:tone==="coral"?"#ff755f":tone==="violet"?"#ad8bff":"#7bf2bc",secondary:tone==="coral"?"#ffc15f":tone==="violet"?"#ff82bd":"#52b7ff",motion:0,tilt:-6};
   return (
-    <div className={`microbe microbe--${profile.shape} appendage--${profile.appendage} expression--${profile.expression} texture--${"texture" in profile?profile.texture:"smooth"} motion--${profile.motion} ${compact ? "microbe--compact" : ""}`} style={{"--c":profile.primary,"--c2":profile.secondary,"--tilt":`${profile.tilt}deg`,"--sx":"scaleX" in profile?profile.scaleX:1,"--sy":"scaleY" in profile?profile.scaleY:1} as React.CSSProperties} aria-hidden="true">
+    <div className={`microbe microbe--${profile.shape} appendage--${profile.appendage} expression--${profile.expression} texture--${"texture" in profile?profile.texture:"smooth"} personality--${"personality" in profile?profile.personality:"explorer"} motion--${profile.motion} ${compact ? "microbe--compact" : ""}`} style={{"--c":profile.primary,"--c2":profile.secondary,"--tilt":`${profile.tilt}deg`,"--sx":"scaleX" in profile?profile.scaleX:1,"--sy":"scaleY" in profile?profile.scaleY:1} as React.CSSProperties} aria-hidden="true">
       <span className="microbe__membrane" />
       <span className="microbe__core" />
       <span className="microbe__spark microbe__spark--one" />
@@ -49,7 +49,7 @@ function AppHeader({ screen, goBack, setScreen }: { screen: Screen; goBack: () =
   );
 }
 
-function Home({ start, mode, setMode, open, introSeen, skipIntro }: { start: () => void; mode: GameMode; setMode:(mode:GameMode)=>void;open:(screen:Screen)=>void;introSeen:boolean;skipIntro:()=>void }) {
+function Home({ start, mode, setMode, open, introSeen, skipIntro, ready }: { start: () => void; mode: GameMode; setMode:(mode:GameMode)=>void;open:(screen:Screen)=>void;introSeen:boolean;skipIntro:()=>void;ready:boolean }) {
   return (
     <section className={`scene home-scene ${introSeen?"intro-complete":"intro-playing"}`} data-testid="screen-home">
       {!introSeen&&<button className="skip-intro" onClick={skipIntro}>Skip intro</button>}
@@ -60,7 +60,7 @@ function Home({ start, mode, setMode, open, introSeen, skipIntro }: { start: () 
           <button className={`mode-card ${mode==="1_player"?"is-selected":""}`} onClick={()=>{gameFeedback.cue("select");setMode("1_player")}}><span>01</span><b>One player</b><small>Face a database rival</small></button>
           <button className={`mode-card ${mode==="2_players"?"is-selected":""}`} onClick={()=>{gameFeedback.cue("select");setMode("2_players")}}><span>02</span><b>Two players</b><small>Pass-and-play locally</small></button>
         </div>
-        <button className="primary-action" onClick={start}>Enter the culture <span>→</span></button>
+        <button className="primary-action" disabled={!ready} aria-busy={!ready} onClick={start}>{ready?"Enter the culture":"Preparing cultures"} <span>{ready?"→":"…"}</span></button>
         <nav className="home-utilities" aria-label="Explore Microbial Mayhem"><button onClick={()=>open("lab")}><span>◉</span><b>Microbe Lab</b><small>Explore all 384 fighters</small></button><button onClick={()=>open("how")}><span>?</span><b>How to Play</b><small>Learn through one quick match</small></button><button onClick={()=>open("settings")}><span>✦</span><b>Settings</b><small>Sound, motion and comfort</small></button></nav>
       </div>
       <div className="hero-dish" aria-label="Animated microscopic bacterial colony">
@@ -82,9 +82,11 @@ function HowToPlay() { return <section className="scene native-panel-scene" data
 function MicrobeLab({fighters,onChoose}:{fighters:Fighter[];onChoose:(fighter:Fighter)=>void}) { const genera=useMemo(()=>Array.from(new Set(fighters.map(f=>f.genus||f.fullName.split(" ")[0]))).sort(),[fighters]); const [genus,setGenus]=useState<string|null>(null); const shown=genus?fighters.filter(f=>(f.genus||f.fullName.split(" ")[0])===genus):fighters.slice(0,18); return <section className="scene native-panel-scene lab-scene" data-testid="screen-lab"><div className="screen-heading"><div><p className="eyebrow">Discovered cultures</p><h2>Microbe Lab</h2></div><p>Browse the roster by genus, then inspect a living specimen.</p></div><div className="lab-browser"><aside><button className={!genus?"is-selected":""} onClick={()=>setGenus(null)}>Highlights <small>{fighters.length} fighters</small></button>{genera.slice(0,40).map(item=><button key={item} className={genus===item?"is-selected":""} onClick={()=>setGenus(item)}><i>{item}</i><small>{fighters.filter(f=>(f.genus||f.fullName.split(" ")[0])===item).length} specimen(s)</small></button>)}</aside><div className="lab-roster">{shown.slice(0,24).map(fighter=><button key={fighter.catalogId} onClick={()=>onChoose(fighter)}><Microbe fighter={fighter}/><span><i>{fighter.fullName}</i><small>{fighter.cellShape} · {fighter.motility}</small></span></button>)}</div></div></section> }
 
 function FighterScreen({ fighters, roster, selected, locked, activePlayer, loading, onSelect, onConfirm, onShuffle, onResetRoster }: { fighters:Fighter[]; roster:Fighter[]; selected:Fighter|null; locked:Fighter|null; activePlayer:1|2; loading:boolean; onSelect:(fighter:Fighter)=>void; onConfirm:()=>void; onShuffle:()=>void; onResetRoster:()=>void }) {
-  const [query,setQuery]=useState(""); const [details,setDetails]=useState(false);
-  const matches=useMemo(()=>searchFighters(fighters,query),[fighters,query]); const shown=query.trim()?matches:roster;
+  const [query,setQuery]=useState(""); const [details,setDetails]=useState(false); const [genus,setGenus]=useState("All"); const [morphology,setMorphology]=useState("All"); const [compareMode,setCompareMode]=useState(false); const [comparison,setComparison]=useState<Fighter|null>(null); const [quickFact,setQuickFact]=useState<Fighter|null>(null); const holdTimer=useRef<ReturnType<typeof setTimeout>|null>(null); const suppressClick=useRef(false);
+  const matches=useMemo(()=>searchFighters(fighters,query),[fighters,query]); const source=query.trim()?matches:roster; const genera=useMemo(()=>Array.from(new Set(roster.map(item=>item.genus||item.fullName.split(" ")[0]))).sort().slice(0,8),[roster]); const shown=source.filter(item=>(genus==="All"||(item.genus||item.fullName.split(" ")[0])===genus)&&(morphology==="All"||(item.cellShape||"").toLowerCase().includes(morphology.toLowerCase())));
   const fighter=selected;
+  const choose=(item:Fighter)=>{if(suppressClick.current){suppressClick.current=false;return}if(compareMode&&fighter?.catalogId!==item.catalogId){setComparison(item);gameFeedback.cue("select");return}if(fighter?.catalogId===item.catalogId){gameFeedback.cue("select","medium");onConfirm();return}gameFeedback.cue("select");onSelect(item)};
+  const beginFact=(item:Fighter)=>{suppressClick.current=false;if(holdTimer.current)clearTimeout(holdTimer.current);holdTimer.current=setTimeout(()=>{suppressClick.current=true;setQuickFact(item);gameFeedback.haptic("medium")},520)}; const endFact=()=>{if(holdTimer.current)clearTimeout(holdTimer.current);holdTimer.current=null};
   useEffect(()=>{if(!details)return;const close=(event:KeyboardEvent)=>{if(event.key==="Escape")setDetails(false)};window.addEventListener("keydown",close);return()=>window.removeEventListener("keydown",close)},[details]);
   return (
     <section className="scene explorer" data-testid="screen-fighter">
@@ -93,24 +95,28 @@ function FighterScreen({ fighters, roster, selected, locked, activePlayer, loadi
       <div className="explorer-grid">
         <aside className="roster-panel">
           <label className="search"><span>⌕</span><input aria-label="Search bacterial fighters" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search genus, species, strain, ID" /></label>
+          <div className="taxonomy-filters" aria-label="Taxonomy filters"><button className={genus==="All"?"is-selected":""} onClick={()=>setGenus("All")}>All genera</button>{genera.map(item=><button key={item} className={genus===item?"is-selected":""} onClick={()=>setGenus(item)}><i>{item}</i></button>)}</div><div className="morphology-filters" aria-label="Morphology filters">{["All","coccus","rod","spiral","chain","cluster"].map(item=><button key={item} className={morphology===item?"is-selected":""} onClick={()=>setMorphology(item)}>{item==="All"?"All shapes":item}</button>)}</div>
           <p className="search-status" role="status">{loading?"Loading production catalog…":query.trim()?matches.length?`Found ${matches.length} match(es) for '${query}'.`:`The database went quiet on '${query}'. Try another genus, species, or strain.`:`Showing ${roster.length} random database-derived bacteria.`}</p>
           <div className="roster-list">
-            {shown.slice(0,30).map((item) => {const unavailable=activePlayer===2&&locked?.catalogId===item.catalogId; return <button key={item.catalogId} disabled={unavailable} aria-disabled={unavailable} onClick={() => {gameFeedback.cue("select");onSelect(item)}} className={selected?.catalogId===item.catalogId?"is-selected":unavailable?"is-locked":""}>
-              <Microbe fighter={item} compact /><span><i>{item.fullName}</i><small>{item.strain||"Strain not recorded"} · {item.accessions.length} BGCs{unavailable?" · Player 1 locked":""}</small></span><b>{unavailable?"Locked":"→"}</b>
+            {shown.slice(0,30).map((item) => {const unavailable=activePlayer===2&&locked?.catalogId===item.catalogId; return <button key={item.catalogId} disabled={unavailable} aria-disabled={unavailable} aria-pressed={selected?.catalogId===item.catalogId} onPointerDown={()=>beginFact(item)} onPointerUp={endFact} onPointerCancel={endFact} onContextMenu={event=>{event.preventDefault();setQuickFact(item)}} onClick={() => choose(item)} className={selected?.catalogId===item.catalogId?"is-selected":comparison?.catalogId===item.catalogId?"is-comparing":unavailable?"is-locked":""}>
+              <Microbe fighter={item} compact /><span><i>{item.fullName}</i><small>{item.strain||"Strain not recorded"} · {item.accessions.length} BGCs{unavailable?" · Player 1 locked":""}</small></span><b>{unavailable?"Locked":selected?.catalogId===item.catalogId?"Tap again to select":compareMode?"Compare":"Preview"}</b>
             </button>})}
           </div>
           {query.trim()?<button className="quiet-action" onClick={()=>{setQuery("");onResetRoster()}}>Reset to random roster</button>:<button className="quiet-action" onClick={onShuffle}>Show different bacteria</button>}
         </aside>
-        {fighter?<article className="fighter-focus">{(()=>{const visual=fighterVisualProfile(fighter);return <>
-          <div className="fighter-stage"><div className="focus-ring"/><Microbe fighter={fighter}/><span className="recorded-pill">Recorded morphology · stable fighter identity</span></div>
-          <div className="fighter-info"><p className="eyebrow">Selected fighter</p><h3><i>{fighter.fullName}</i></h3><p className="strain">strain {fighter.strain||"not recorded"}</p>
+        {fighter?<article className="fighter-focus is-previewed">{(()=>{const visual=fighterVisualProfile(fighter);return <>
+          <div className="fighter-stage"><div className="focus-ring"/><Microbe fighter={fighter}/><span className={`recorded-pill ${fighter.traits.length||fighter.accessions.length?"has-evidence":"limited-evidence"}`}>{fighter.traits.length||fighter.accessions.length?"Detailed biological data":"Limited biological data"}</span></div>
+          <div className="fighter-info"><p className="eyebrow">Fighter preview</p><h3><i>{fighter.fullName}</i></h3><p className="strain">strain {fighter.strain||"not recorded"}</p>
             <div className="fighter-identity"><span>{visual.archetype}</span><b>{visual.shapeName}</b><small>{visual.texture} surface · {visual.appendage} appendages</small></div>
             <div className="fact-row"><span><small>Morphology</small><b>{fighter.cellShape||"Not recorded"} · {fighter.motility||"motility not recorded"}</b></span><span><small>Habitat</small><b>{fighter.habitat||"Not recorded"}</b></span><span><small>Known BGCs</small><b>{fighter.accessions.length} documented</b></span></div>
+            <div className="strength-chips" aria-label="Recorded strengths">{fighter.traits.slice(0,3).map(trait=><span key={trait.trait}>{trait.trait}</span>)}{!fighter.traits.length&&<span>Biology still being documented</span>}</div>
             <div className="ability"><span className="ability__icon">✦</span><span><small>Signature chemistry</small><b>Documented biosynthetic activity</b></span><button onClick={()=>setDetails(true)}>Biology details</button></div>
-            <button className="primary-action" onClick={onConfirm}>Lock Player {activePlayer} fighter <span>→</span></button>
+            <div className="fighter-actions"><button className="compare-action" aria-pressed={compareMode} onClick={()=>{setCompareMode(value=>!value);setComparison(null)}}>{compareMode?"Cancel comparison":"Compare fighter"}</button><button className="primary-action" onClick={()=>{gameFeedback.cue("select","strong");onConfirm()}}>Select Player {activePlayer} fighter <span>→</span></button></div>
           </div></>})()}
         </article>:<article className="fighter-focus empty-focus"><p>Select a bacterium to inspect its recorded biology.</p></article>}
       </div>
+      {compareMode&&fighter&&<aside className="compare-tray" aria-live="polite"><article><Microbe fighter={fighter} compact/><span><small>Previewed fighter</small><b><i>{fighter.fullName}</i></b><em>{fighter.cellShape}</em></span></article><strong>VS</strong>{comparison?<article><Microbe fighter={comparison} compact/><span><small>Comparison fighter</small><b><i>{comparison.fullName}</i></b><em>{comparison.cellShape}</em></span></article>:<p>Tap another fighter card to compare without losing this preview.</p>}</aside>}
+      {quickFact&&<div className="quick-fact" role="dialog" aria-modal="true" aria-label={`Quick fact about ${quickFact.fullName}`} onClick={()=>setQuickFact(null)}><div><Microbe fighter={quickFact} compact/><p className="eyebrow">Press-and-hold discovery</p><h3><i>{quickFact.fullName}</i></h3><p>{quickFact.curiousFact||quickFact.description||quickFact.traits[0]?.explanation||"The available biological evidence is limited—another reason microbial research matters."}</p><button autoFocus onClick={()=>setQuickFact(null)}>Return to fighters</button></div></div>}
       {details&&fighter&&<div className="modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setDetails(false)}}><section className="biology-modal" role="dialog" aria-modal="true" aria-labelledby="biology-title"><button className="modal-close" autoFocus onClick={()=>setDetails(false)} aria-label="Close biology details">×</button><p className="eyebrow">Recorded biological evidence</p><h2 id="biology-title"><i>{fighter.fullName}</i></h2><p>Strain {fighter.strain||"not recorded"}</p><div className="biology-grid"><span><small>Morphology</small><b>{fighter.cellShape||"Not recorded"}; {fighter.motility||"motility not recorded"}</b></span><span><small>Habitat</small><b>{fighter.habitat||"Not recorded"}</b></span><span><small>Colony appearance</small><b>{fighter.colonyAppearance||"Not recorded"}</b></span><span><small>Provenance</small><b>{typeof fighter.provenance==="string"?fighter.provenance:String((fighter.provenance as Record<string,unknown>)?.source||"Production catalog")}</b></span></div><h3>Documented BGC accessions</h3><p>{fighter.accessions.length?fighter.accessions.join(", "):"No documented MIBiG BGC is available. The game will not imply an arsenal."}</p><h3>Products and activities</h3><p>{fighter.products.length?fighter.products.join(", "):"Products not recorded"} · {fighter.activities.length?fighter.activities.join(", "):"activities not recorded"}</p><h3>Trait evidence</h3>{fighter.traits.length?<ul>{fighter.traits.map((trait,index)=><li key={`${trait.trait}-${index}`}><b>{trait.trait}</b> — {trait.evidenceLevel}: {trait.explanation}</li>)}</ul>:<p>No compact trait evidence is available. That is why we need more research.</p>}<h3>Biological note</h3><p>{fighter.description||fighter.curiousFact||"The biological explanation is still hiding under the microscope. That is why we need more research."}</p><aside><b>Visual honesty</b><p>Morphology above is recorded when available. Color, glow, personality and combat motion are deterministic procedural styling—not claimed biological observations.</p></aside></section></div>}
     </section>
   );
@@ -189,14 +195,22 @@ export default function HomePage() {
   const updatePreferences=(patch:Partial<GamePreferences>)=>setPreferences(current=>{const next=normalizePreferences({...current,...patch});void savePreference("game-preferences",next);return next});
   const navigate=(next:Screen)=>{setHistory(items=>[...items,screen]);setScreen(next)}; const goBack=()=>setHistory(items=>{const copy=items.slice();setScreen(copy.pop()||"home");return copy});
   useEffect(()=>{let live=true; fetch("./data/fighters-core.v2.json").then(response=>response.json()).then((data:RuntimeCatalog)=>{if(!live)return;setCatalog(data.fighters);setRoster(sampleFighters(data.fighters,10,41));}).finally(()=>live&&setCatalogLoading(false));return()=>{live=false}},[]);
-  const startGame=()=>{gameFeedback.cue("select","medium");setActivePlayer(1);setSetupPlayer(1);setPlayer1(null);setPlayer2(null);setSelected(null);setPlayer1Cfu(100);setPlayer2Cfu(100);setPlayer1Arsenal(false);setPlayer2Arsenal(false);setEnvironment("Neutral");setBattleSeed(17);setRoster(previous=>sampleFighters(catalog,10,rosterSeed+1,previous));setRosterSeed(value=>value+1);setHistory(["home"]);setScreen("fighter")};
+  const startGame=()=>{
+    setScreen("fighter");
+    setHistory(["home"]);
+    setActivePlayer(1); setSetupPlayer(1); setPlayer1(null); setPlayer2(null); setSelected(null);
+    setPlayer1Cfu(100); setPlayer2Cfu(100); setPlayer1Arsenal(false); setPlayer2Arsenal(false);
+    setEnvironment("Neutral"); setBattleSeed(17);
+    setRoster(previous=>sampleFighters(catalog,10,rosterSeed+1,previous)); setRosterSeed(value=>value+1);
+    gameFeedback.cue("select","medium");
+  };
   const shuffleRoster=()=>{const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,activePlayer===2?player1||undefined:undefined));setRosterSeed(next);setSelected(null)};
   const confirmFighter=()=>{if(!selected)return;if(activePlayer===1){setPlayer1(selected);if(mode==="2_players"){setSelected(null);setActivePlayer(2);const next=rosterSeed+1;setRoster(previous=>sampleFighters(catalog,10,next,previous,selected));setRosterSeed(next);return}const rival=chooseCatalogOpponent(catalog,selected.catalogId,battleSeed);setPlayer2(rival);setPlayer2Cfu(generateOpponentCfu(battleSeed));setPlayer2Arsenal(new PythonRandom(battleSeed+1).random()>=.5);setSetupPlayer(1);setScreen("colony");return}setPlayer2(selected);setSetupPlayer(1);setScreen("colony")};
   const currentCfu=setupPlayer===1?player1Cfu:player2Cfu; const setCurrentCfu=setupPlayer===1?setPlayer1Cfu:setPlayer2Cfu; const currentArsenal=setupPlayer===1?player1Arsenal:player2Arsenal; const setCurrentArsenal=setupPlayer===1?setPlayer1Arsenal:setPlayer2Arsenal;
   const confirmArsenal=()=>{if(mode==="2_players"&&setupPlayer===1){setSetupPlayer(2);setScreen("colony")}else setScreen("environment")};
   const p1=player1||battleFighters[0],p2=player2||battleFighters[1];
   const result=useMemo(()=>scoreBattle({mode,seed:battleSeed,environment,player:p1,opponent:p2,playerColonyCfu:player1Cfu,opponentColonyCfu:player2Cfu,playerArsenal:player1Arsenal,opponentArsenal:player2Arsenal}),[mode,battleSeed,environment,p1,p2,player1Cfu,player2Cfu,player1Arsenal,player2Arsenal]);
-  const content = screen === "home" ? <Home start={startGame} mode={mode} setMode={setMode} open={navigate} introSeen={preferences.introSeen||preferences.reducedMotion} skipIntro={()=>updatePreferences({introSeen:true})}/> :
+  const content = screen === "home" ? <Home start={startGame} mode={mode} setMode={setMode} open={navigate} introSeen={preferences.introSeen||preferences.reducedMotion} skipIntro={()=>updatePreferences({introSeen:true})} ready={!catalogLoading&&catalog.length>0}/> :
     screen === "settings" ? <SettingsScreen preferences={preferences} update={updatePreferences} replayIntro={()=>{updatePreferences({introSeen:false});setHistory([]);setScreen("home")}}/> :
     screen === "how" ? <HowToPlay/> :
     screen === "lab" ? <MicrobeLab fighters={catalog} onChoose={fighter=>{setSelected(fighter);setActivePlayer(1);setHistory(["home","lab"]);setScreen("fighter")}}/> :
