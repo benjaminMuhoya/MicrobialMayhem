@@ -1,0 +1,173 @@
+/* Real-device selection and result-card fixes. These rules intentionally stay
+   scoped to the affected scenes so the established game layouts remain intact. */
+.theme-fighter,
+.theme-fighter .screen-frame,
+.explorer,
+.explorer-grid,
+.roster-panel,
+.fighter-focus {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.theme-fighter { overflow-x: clip; }
+.explorer-grid { align-items: stretch; }
+.roster-panel { display: flex; flex-direction: column; }
+.roster-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-height: min(620px, 66svh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+.roster-list button { width: 100%; min-width: 0; flex: none; scroll-snap-align: none; }
+.roster-list button > span { min-width: 0; overflow: hidden; }
+.roster-list button > span > i {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  line-height: 1.25;
+}
+.roster-list button > span > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.roster-list button.is-selected { transform: none; }
+.empty-focus { display: grid; place-items: center; min-height: 180px; padding: 24px; text-align: center; }
+
+.comparison-panel {
+  margin-top: 18px;
+  padding: clamp(18px, 3vw, 30px);
+  border: 1px solid rgba(173,139,255,.4);
+  border-radius: 28px;
+  background: radial-gradient(circle at 50% 0,rgba(173,139,255,.12),transparent 40%),rgba(8,25,22,.92);
+  box-shadow: 0 20px 60px rgba(0,0,0,.28);
+}
+.comparison-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.comparison-heading h3 { margin: 0; font-size: clamp(1.4rem,3vw,2.2rem); }
+.comparison-heading > p { max-width: 420px; margin: 0; color: var(--muted); line-height: 1.45; }
+.comparison-fighters { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin: 22px 0; }
+.comparison-fighters article { position: relative; display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 14px; min-width: 0; padding: 16px; border: 2px solid var(--line); border-radius: 20px; }
+.comparison-fighters article.is-preview { border-color: var(--mint); background: rgba(123,242,188,.08); }
+.comparison-fighters article.is-comparison { border-color: var(--violet); background: rgba(173,139,255,.08); }
+.comparison-fighters article > span { position: absolute; top: 8px; right: 10px; color: var(--muted); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; }
+.comparison-fighters .microbe { position: relative; inset: auto; width: 82px; height: 52px; }
+.comparison-fighters b { min-width: 0; padding-top: 14px; overflow-wrap: anywhere; }
+.comparison-fighters > strong { color: var(--coral); }
+.comparison-traits { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.comparison-traits > div { display: grid; grid-template-columns: minmax(130px,.55fr) 1fr 1fr; gap: 14px; padding: 13px 15px; border-top: 1px solid var(--line); }
+.comparison-traits > div:first-child { border-top: 0; }
+.comparison-traits b { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+.comparison-traits span { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+.comparison-traits span:nth-child(2) { color: #dff8ea; }
+.comparison-traits span:nth-child(3) { color: #e4dbff; }
+.comparison-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.factor-list button { transition: transform .15s ease,border-color .15s ease,background .15s ease; touch-action: manipulation; }
+.factor-list button:active { transform: scale(.985); border-color: var(--lime); background: rgba(215,241,113,.12); }
+.factor-list button.is-expanded { grid-column: 1/-1; min-height: 0; border-color: var(--lime); background: rgba(215,241,113,.09); transform: none; }
+.factor-details { grid-column: 1/-1; margin-top: 12px; padding: 14px; border-top: 1px solid rgba(215,241,113,.25); color: var(--ink); }
+.factor-details dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+.factor-details dl > div { min-width: 0; padding: 11px; border-radius: 12px; background: rgba(3,15,12,.45); }
+.factor-details dt { color: var(--lime); font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.factor-details dd { margin: 5px 0 0; overflow-wrap: anywhere; color: #d7e4dd; line-height: 1.45; }
+.factor-details > strong { display: block; margin-top: 12px; color: var(--muted); font-size: .68rem; text-align: right; }
+
+@media (max-width: 900px) {
+  .viewport-tablet-portrait .explorer-grid { grid-template-columns: minmax(290px,.8fr) minmax(0,1.2fr); }
+  .viewport-tablet-portrait .roster-list { display: grid; max-height: 650px; overflow-x: hidden; overflow-y: auto; scroll-snap-type: none; }
+  .viewport-tablet-portrait .roster-list button { flex: none; }
+  .viewport-tablet-portrait .fighter-focus { display: block; }
+  .viewport-tablet-portrait .fighter-stage { min-height: 320px; }
+}
+
+@media (max-width: 620px) {
+  .explorer { width: calc(100vw - 24px); padding-top: 18px; }
+  .explorer .screen-heading { margin-bottom: 14px; }
+  .explorer .screen-heading > p { margin-bottom: 0; }
+  .explorer-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .roster-panel { order: 2; padding: 12px; overflow: visible; }
+  .fighter-focus { order: 1; }
+  .roster-list { display: grid; grid-template-columns: 1fr; max-height: min(44svh,390px); padding: 0 3px 4px 0; overflow-x: hidden; overflow-y: auto; scroll-snap-type: none; }
+  .roster-list button { min-height: 76px; padding: 10px; }
+  .roster-list .microbe { flex-basis: 48px; width: 48px; height: 31px; }
+  .roster-list button > b { max-width: 62px; }
+  .fighter-focus.empty-focus { display: none; }
+  .viewport-phone-portrait .fighter-focus:not(.empty-focus) {
+    display: grid;
+    grid-template-columns: 112px minmax(0,1fr);
+    align-items: stretch;
+  }
+  .viewport-phone-portrait .fighter-stage { min-height: 300px; }
+  .viewport-phone-portrait .fighter-stage > .microbe { width: 96px; height: 61px; }
+  .viewport-phone-portrait .fighter-stage .recorded-pill {
+    right: 7px;
+    bottom: 10px;
+    left: 7px;
+    padding: 6px;
+    white-space: normal;
+    text-align: center;
+  }
+  .viewport-phone-portrait .fighter-info { padding: 14px; }
+  .viewport-phone-portrait .fighter-info h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    font-size: clamp(1.15rem,5.5vw,1.55rem);
+    line-height: 1.05;
+  }
+  .viewport-phone-portrait .fighter-info .strain {
+    display: block;
+    overflow: hidden;
+    margin: 5px 0 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .viewport-phone-portrait .fighter-identity,
+  .viewport-phone-portrait .fighter-info .fact-row,
+  .viewport-phone-portrait .fighter-info .strength-chips,
+  .viewport-phone-portrait .fighter-info .ability { display: none; }
+  .viewport-phone-portrait .fighter-actions { gap: 7px; margin-top: 12px; }
+  .viewport-phone-portrait .fighter-actions button { min-width: 0; padding: 12px 9px; font-size: .72rem; }
+  .comparison-heading { display: block; }
+  .comparison-heading > p { margin-top: 8px; }
+  .comparison-fighters { gap: 7px; }
+  .comparison-fighters article { grid-template-columns: 1fr; justify-items: center; min-height: 150px; padding: 28px 10px 12px; text-align: center; }
+  .comparison-fighters article > span { left: 7px; right: 7px; text-align: center; }
+  .comparison-fighters .microbe { display: block; }
+  .comparison-fighters b { padding-top: 0; font-size: .78rem; }
+  .comparison-traits > div { grid-template-columns: 88px minmax(0,1fr) minmax(0,1fr); gap: 8px; padding: 11px 9px; font-size: .72rem; }
+  .comparison-traits b { font-size: .6rem; }
+  .comparison-actions { display: grid; }
+  .comparison-actions .primary-action { width: 100%; }
+  .factor-details dl { grid-template-columns: 1fr; }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  .viewport-phone-landscape .explorer { width: calc(100vw - 28px); padding-top: 8px; }
+  .viewport-phone-landscape .explorer .screen-heading { display: flex; margin-bottom: 8px; }
+  .viewport-phone-landscape .explorer .screen-heading h2 { font-size: clamp(1.7rem,4vw,2.5rem); }
+  .viewport-phone-landscape .explorer .screen-heading > p { display: none; }
+  .viewport-phone-landscape .explorer-grid { grid-template-columns: minmax(270px,.85fr) minmax(0,1.15fr); gap: 10px; }
+  .viewport-phone-landscape .roster-panel { order: 1; }
+  .viewport-phone-landscape .fighter-focus { order: 2; display: grid; grid-template-columns: minmax(130px,.7fr) minmax(0,1.3fr); }
+  .viewport-phone-landscape .roster-list { max-height: 52dvh; }
+  .viewport-phone-landscape .fighter-stage { min-height: 320px; }
+  .viewport-phone-landscape .fighter-info { padding: 14px; }
+  .viewport-phone-landscape .fighter-info .fact-row { gap: 7px; margin: 10px 0; }
+  .viewport-phone-landscape .fighter-info .strength-chips,.viewport-phone-landscape .fighter-info .ability { display: none; }
+  .viewport-phone-landscape .fighter-actions { gap: 6px; }
+  .viewport-phone-landscape .fighter-actions button { min-width: 0; padding-inline: 10px; font-size: .72rem; }
+  .viewport-phone-landscape .comparison-panel { margin-top: 10px; }
+}

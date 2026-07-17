@@ -61,6 +61,10 @@ test("one-player completes automatically and supports rematch and menu actions",
   const decisiveFactor = page.locator(".factor-list button").first();
   await decisiveFactor.click();
   await expect(decisiveFactor).toHaveAttribute("aria-pressed", "true");
+  await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Contribution");
+  await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Fighter with the edge");
+  await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Biological reason");
+  await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Evidence and uncertainty");
   await page.getByRole("button", { name: "Explore the science" }).click();
   await expect(page.getByText("Biological interpretation")).toBeVisible();
   await page.getByRole("button", { name: /Rematch/ }).click();

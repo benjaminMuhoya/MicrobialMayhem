@@ -7,6 +7,7 @@ import "./accessibility.css";
 import "./performance.css";
 import "./replayability.css";
 import "./ipad-two-player.css";
+import "./selection-results-usability.css";
 import { PwaRuntime } from "./components/PwaRuntime";
 
 /* eslint-disable @next/next/no-css-tags -- the static mobile export packages this offline scene stylesheet */
