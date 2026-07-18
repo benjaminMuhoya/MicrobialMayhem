@@ -56,8 +56,10 @@ test("one-player completes automatically and supports rematch and menu actions",
   await page.getByRole("button", { name: "Enter this habitat →" }).click();
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Enter the microscopic arena →" }).click();
+  await page.getByRole("button", { name: "Skip battle →" }).click();
   await expect(page.getByTestId("screen-results")).toBeVisible({ timeout: 22_000 });
   await expect(page.getByText("Automated Rival", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /View Science Breakdown/ }).click();
   const decisiveFactor = page.locator(".factor-list button").first();
   await decisiveFactor.click();
   await expect(decisiveFactor).toHaveAttribute("aria-pressed", "true");
@@ -65,8 +67,8 @@ test("one-player completes automatically and supports rematch and menu actions",
   await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Fighter with the edge");
   await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Biological reason");
   await expect(decisiveFactor.getByTestId("factor-details")).toContainText("Evidence and uncertainty");
-  await page.getByRole("button", { name: "Explore the science" }).click();
   await expect(page.getByText("Biological interpretation")).toBeVisible();
+  await page.getByRole("button", { name: /Close science breakdown/ }).click();
   await page.getByRole("button", { name: /Rematch/ }).click();
   await expect(page.getByTestId("screen-arena")).toBeVisible();
   await page.getByRole("button", { name: "Skip battle →" }).click();

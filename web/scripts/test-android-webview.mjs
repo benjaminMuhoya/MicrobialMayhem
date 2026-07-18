@@ -57,6 +57,8 @@ const assertFixedViewport=async label=>{const state=await viewportState();if(sta
 await swipeViewport("up");
 const fixedRootAfterPhysicalSwipe=await assertFixedViewport("Home after physical swipe");
 if(await evaluate(`Boolean(${buttonExpression("Discard")})`))await tap(buttonExpression("Discard"));
+const homeControls=await evaluate(`(()=>{const labels=['One player','Two players','Enter the culture','Random Match','Daily Challenge','How to Play','Microbe Lab','Settings'];return labels.map(label=>{const button=Array.from(document.querySelectorAll('button')).find(item=>item.textContent.replace(/\\s+/g,' ').includes(label)),box=button?.getBoundingClientRect();return{label,visible:Boolean(button&&box&&box.top>=0&&box.bottom<=innerHeight&&box.left>=0&&box.right<=innerWidth)}})})()`);
+if(homeControls.some(control=>!control.visible))throw new Error(`A required home control is outside the packaged viewport: ${JSON.stringify(homeControls)}`);
 await tap(buttonExpression("One player"));
 await tap(buttonExpression("Enter the culture"));
 if(await evaluate(`Boolean(${buttonExpression("Skip")})`))await tap(buttonExpression("Skip"));
@@ -111,9 +113,13 @@ const completeMatch=async (label,physical=true)=>{
   await activate("Lock Player 1 colony");
   await waitFor("Boolean(document.querySelector('[data-testid=screen-arsenal]'))");
   await assertFixedViewport(`${label} arsenal`);
+  const arsenalRecords=await evaluate(`Array.from(document.querySelectorAll('.gene-chain i')).filter(item=>item.offsetParent!==null).map(item=>item.textContent.trim())`);
+  if(arsenalRecords.length&&arsenalRecords.some(record=>!record))throw new Error(`${label} arsenal showed an empty MIBiG label.`);
   await activate("Confirm Player 1 preparation");
   await waitFor("Boolean(document.querySelector('[data-testid=screen-environment]'))");
   await assertFixedViewport(`${label} environment`);
+  const arenaOverlap=await evaluate(`Array.from(document.querySelectorAll('.environment-grid button')).filter(card=>card.offsetParent!==null).some(card=>{const pieces=Array.from(card.querySelectorAll(':scope > b,:scope > em,:scope > small'));return pieces.some((piece,index)=>pieces.slice(index+1).some(other=>{const a=piece.getBoundingClientRect(),b=other.getBoundingClientRect();return a.bottom>b.top+1&&b.bottom>a.top+1}))})`);
+  if(arenaOverlap)throw new Error(`${label} environment card text overlaps.`);
   await activate("Enter this habitat");
   await waitFor("Boolean(document.querySelector('[data-testid=screen-preview]'))");
   await assertFixedViewport(`${label} preview`);
@@ -126,12 +132,15 @@ const completeMatch=async (label,physical=true)=>{
 };
 
 await completeMatch("Portrait");
-const resultsPanel=selectorExpression("[data-testid=screen-results]");
+await tap(buttonExpression("View Science Breakdown"));
+await waitFor("Boolean(document.querySelector('.science-results-scroll'))");
+const resultsPanel=selectorExpression(".science-results-scroll");
 const resultsBefore=await evaluate(`${resultsPanel}.scrollTop`);
 await swipeInside(resultsPanel,"up");
 const resultsAfter=await evaluate(`${resultsPanel}.scrollTop`);
 if(resultsAfter<=resultsBefore)throw new Error("Physical results swipe did not move the internal results panel.");
 await assertFixedViewport("Portrait results after internal swipe");
+await tap(buttonExpression("Close science breakdown"));
 await tap(buttonExpression("Main menu"));
 await waitFor("Boolean(document.querySelector('[data-testid=screen-home]'))");
 await run(adb,["shell","settings","put","system","user_rotation","1"]);
@@ -144,5 +153,5 @@ await evaluate(`${selectorExpression("[data-testid=fighter-choice-list]")}.query
 await completeMatch("Landscape",false);
 await run(adb,["shell","settings","put","system","user_rotation","0"]);
 
-console.log(JSON.stringify({runtime:"Capacitor Android WebView",rootFixedAfterPhysicalSwipe:fixedRootAfterPhysicalSwipe,rosterTouchAction:before.touchAction,rosterScroll:[before.scrollTop,after.scrollTop],comparisonScroll:[comparisonBefore,comparisonAfter],resultsScroll:[resultsBefore,resultsAfter],lastFighterSelected:true,accidentalSelection:false,rosterPositionRestored:true,orientationStatePreserved:true,portraitCompleteFlow:true,landscapeCompleteFlow:true,landscapeComparison:landscape},null,2));
+console.log(JSON.stringify({runtime:"Capacitor Android WebView",homeControls,rootFixedAfterPhysicalSwipe:fixedRootAfterPhysicalSwipe,rosterTouchAction:before.touchAction,rosterScroll:[before.scrollTop,after.scrollTop],comparisonScroll:[comparisonBefore,comparisonAfter],resultsScroll:[resultsBefore,resultsAfter],lastFighterSelected:true,accidentalSelection:false,rosterPositionRestored:true,orientationStatePreserved:true,portraitCompleteFlow:true,landscapeCompleteFlow:true,landscapeComparison:landscape},null,2));
 socket.close();

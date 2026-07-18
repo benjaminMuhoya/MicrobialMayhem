@@ -75,8 +75,10 @@ async function finishMatch(page:Page,mode:"one"|"two"){
   await page.getByRole("button",{name:"Enter the microscopic arena →"}).click();
   await expectFixedViewport(page);
   const skip=page.getByRole("button",{name:"Skip battle →"});
+  const results=page.getByTestId("screen-results");
+  await Promise.race([skip.waitFor({state:"visible",timeout:15_000}),results.waitFor({state:"visible",timeout:15_000})]);
   if(await skip.isVisible())await skip.click();
-  await expect(page.getByTestId("screen-results")).toBeVisible({timeout:15_000});
+  await expect(results).toBeVisible({timeout:15_000});
   await expectFixedViewport(page);
 }
 
@@ -172,7 +174,10 @@ test("every result factor card expands on touch and exposes scientific detail",a
   await page.setViewportSize({width:390,height:844});
   await openSelection(page);
   await finishMatch(page,"one");
-  const factors=page.locator(".factor-list button");
+  await page.getByRole("button",{name:/View Science Breakdown/}).click();
+  const modal=page.getByRole("dialog",{name:/Why this organism won/});
+  await expect(modal).toBeVisible();
+  const factors=modal.locator(".factor-list button");
   const count=await factors.count();
   expect(count).toBeGreaterThan(0);
   for(let index=0;index<count;index+=1){
@@ -182,7 +187,7 @@ test("every result factor card expands on touch and exposes scientific detail",a
     await expect(factor.getByTestId("factor-details")).toContainText("Evidence and uncertainty");
   }
   await expectFixedViewport(page);
-  const results=page.getByTestId("screen-results");
+  const results=modal.locator(".science-results-scroll");
   const resultMetrics=await results.evaluate(element=>({clientHeight:element.clientHeight,scrollHeight:element.scrollHeight,touchAction:getComputedStyle(element).touchAction}));
   expect(resultMetrics.scrollHeight).toBeGreaterThan(resultMetrics.clientHeight);
   expect(resultMetrics.touchAction).toBe("pan-y");
@@ -191,7 +196,34 @@ test("every result factor card expands on touch and exposes scientific detail",a
   await touchSwipe(page,{x:(resultsBox?.x||0)+(resultsBox?.width||0)/2,y:(resultsBox?.y||0)+(resultsBox?.height||0)-80},{x:(resultsBox?.x||0)+(resultsBox?.width||0)/2,y:(resultsBox?.y||0)+80});
   expect(await results.evaluate(element=>element.scrollTop)).toBeGreaterThan(0);
   expect(await page.evaluate(()=>window.scrollY)).toBe(0);
+  await modal.getByRole("button",{name:/Close science breakdown/}).click();
+  await expect(modal).toHaveCount(0);
   await expect(page.getByRole("button",{name:/Main menu/})).toBeInViewport();
+});
+
+test("corrected APK screens keep required controls and animated records visible",async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/");
+  for(const label of ["One player","Two players","Enter the culture","Random Match","Daily Challenge","How to Play","Microbe Lab","Settings"]){
+    await expect(page.getByRole("button",{name:new RegExp(label,"i")}).first()).toBeInViewport();
+  }
+  await openSelection(page);
+  await page.locator(".roster-list button:not([disabled])").filter({hasText:/[1-9]\d* BGCs/}).first().click();
+  const confirm=page.getByRole("button",{name:"Select Player 1 fighter →"});
+  await expect(confirm).toBeInViewport();
+  const confirmBox=await confirm.boundingBox();
+  expect((confirmBox?.y||0)+(confirmBox?.height||0)).toBeLessThanOrEqual(844);
+  await confirm.click();
+  await page.getByRole("button",{name:"Lock Player 1 colony →"}).click();
+  const records=page.locator(".gene-chain i");
+  expect(await records.count()).toBeGreaterThan(0);
+  await expect(records.first()).toBeVisible();
+  await expect(records.first()).not.toHaveText("");
+  await page.getByRole("button",{name:"Confirm Player 1 preparation →"}).click();
+  const environment=page.getByTestId("screen-environment");
+  await expect(environment.getByRole("button",{name:/Enter this habitat/})).toBeInViewport();
+  const overlapping=await environment.locator(".environment-grid button").evaluateAll(cards=>cards.some(card=>{const pieces=Array.from(card.querySelectorAll(":scope > b,:scope > em,:scope > small"));return pieces.some((piece,index)=>pieces.slice(index+1).some(other=>{const a=piece.getBoundingClientRect(),b=other.getBoundingClientRect();return a.bottom>b.top+1&&b.bottom>a.top+1}))}));
+  expect(overlapping).toBe(false);
 });
 
 for(const device of devices){

@@ -151,12 +151,53 @@ body { position: fixed; inset: 0; }
 }
 
 .result-actions {
-  position: sticky;
+  position: relative;
   z-index: 8;
-  bottom: 0;
   padding: 10px max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, transparent, #071814 20%);
 }
+
+.science-results-backdrop {
+  position: fixed;
+  z-index: 300;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: rgba(2, 10, 8, .88);
+}
+.science-results-modal {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(1120px, 100%);
+  height: min(900px, 100%);
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: clamp(18px, 3vw, 32px);
+  background: #071814;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .55);
+}
+.science-results-modal > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(14px, 3vw, 28px);
+  border-bottom: 1px solid var(--line);
+}
+.science-results-modal > header h2 { margin: 0; font-size: clamp(1.35rem, 4vw, 2.4rem); }
+.science-results-modal > header .eyebrow { margin-bottom: 3px; }
+.science-results-modal > header button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: rgba(123,242,188,.08); }
+.science-results-scroll {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(12px, 2vw, 24px);
+}
+.science-results-scroll .why-won { margin-top: 0; }
 
 /* Existing information screens are bounded scroll panels, not page scroll. */
 .native-panel-scene,
@@ -239,7 +280,7 @@ body { position: fixed; inset: 0; }
   }
   .environment-grid button { flex-basis: min(68vw, 300px); height: 100%; min-height: 0; }
   .environment-confirm { position: relative; bottom: auto; padding: 10px 12px; }
-  .environment-confirm p small { display: none; }
+  .environment-confirm p small { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 
   .result-actions { flex-wrap: wrap; margin-top: 14px; }
   .result-actions button { min-height: 44px; }
@@ -287,7 +328,7 @@ body { position: fixed; inset: 0; }
   .prep-scene > .screen-heading { grid-column: 1; }
   .gene-stage { min-height: 0; }
   .gene-stage > .microbe { width: min(45vw, 180px); height: min(28vw, 110px); }
-  .gene-chain { display: none; }
+  .gene-chain { display: block; inset: 5%; }
   .prep-controls p { margin-top: 0; }
 
   .preview-scene .screen-heading > p:last-child { display: none; }
@@ -344,7 +385,7 @@ body { position: fixed; inset: 0; }
   .prep-scene { gap: 12px; }
   .gene-stage { min-height: 0; }
   .gene-stage > .microbe { width: min(26vw, 190px); height: min(16vw, 118px); }
-  .gene-chain { display: none; }
+  .gene-chain { display: block; inset: 4%; }
   .prep-controls { padding: 10px 14px; }
   .prep-controls p { margin: 0; }
   .prep-controls p span { display: none; }
@@ -357,7 +398,7 @@ body { position: fixed; inset: 0; }
   .environment-grid button i { margin-bottom: 8px; }
   .environment-grid button em { display: none; }
   .environment-confirm { padding: 8px 12px; }
-  .environment-confirm p small { display: none; }
+  .environment-confirm p small { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
 
   .preview-scene .screen-heading > p:last-child { display: none; }
   .preview-scene .versus .microbe { width: min(24vw, 180px); height: min(14vw, 108px); margin-block: 4px; }
@@ -390,4 +431,127 @@ body { position: fixed; inset: 0; }
   width: 100%;
   min-height: 36px;
   text-align: center;
+}
+
+/* APK-specific compact compositions for the five corrected screens. */
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-scene {
+  position: relative;
+  display: block;
+  min-height: 0;
+  padding: 3px 0 max(5px, env(safe-area-inset-bottom));
+}
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-copy h1 { font-size: clamp(1.85rem, 7.8vw, 3.25rem); line-height: .88; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-copy h1 small { margin-bottom: 4px; font-size: .55rem; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-copy .lede { margin: 6px 0; max-width: 78%; font-size: .72rem; line-height: 1.28; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-scene .hero-dish {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: -18px;
+  width: min(34vw, 145px);
+  margin: 0;
+  opacity: .38;
+  pointer-events: none;
+}
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-scene .specimen-tag { display: none; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .mode-picker { gap: 5px; margin: 5px 0; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .mode-card { min-height: 42px; padding: 7px 9px; border-radius: 12px; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .mode-card small { font-size: .58rem; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-copy > .primary-action { min-height: 44px; padding: 9px 13px; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .quick-matches { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 5px; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .quick-matches button { min-height: 42px; padding: 6px; border-radius: 11px; font-size: .68rem; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .quick-matches small { display: none; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-utilities { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 5px; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-utilities button { min-height: 42px; padding: 6px 8px; border-radius: 11px; font-size: .68rem; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-utilities button > span { width: 25px; height: 25px; }
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .home-utilities small { display: none; }
+
+.viewport-phone-portrait .explorer-grid { grid-template-rows: minmax(245px, 1.18fr) minmax(180px, .82fr); }
+.viewport-phone-portrait .fighter-focus { padding-bottom: max(3px, env(safe-area-inset-bottom)); }
+.viewport-phone-portrait .fighter-info { padding-bottom: 6px !important; }
+.viewport-phone-portrait .fighter-actions { gap: 4px; }
+.viewport-phone-portrait .fighter-actions button { min-height: 38px; padding-block: 4px; }
+.viewport-phone-portrait .fighter-info .ability { min-height: 34px; margin-block: 3px; }
+.viewport-phone-portrait .fighter-info .ability button { min-height: 30px; }
+
+:is(.viewport-phone-portrait,.viewport-phone-landscape) .gene-chain i {
+  max-width: 92px;
+  padding: 5px 7px;
+  overflow: hidden;
+  font-size: .55rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: rotate(calc(var(--n,1) * 72deg)) translateX(clamp(54px, 15vw, 82px));
+}
+
+@media (max-width: 760px) {
+  .game-shell .environment-scene .preview-condition { display: none; }
+  .game-shell .environment-scene .screen-heading { margin-bottom: 5px; }
+  .game-shell .environment-scene .environment-grid { height: 100%; padding: 3px 5vw 5px; margin-inline: 0; }
+  .game-shell .environment-scene .environment-grid button { flex: 0 0 min(67vw, 285px); height: 100%; min-height: 0; padding: 7px; }
+  .game-shell .environment-scene .environment-grid button > i { width: min(17dvh, 75px); height: min(17dvh, 75px); margin: 2px auto 4px; }
+  .game-shell .environment-scene .environment-grid button > em { min-height: 0; margin-top: 3px; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: .61rem; line-height: 1.2; }
+  .game-shell .environment-scene .environment-grid button > small { margin-top: 3px; font-size: .58rem; }
+  .game-shell .environment-scene .environment-confirm { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; margin-top: 5px; padding: 6px 8px max(6px, env(safe-area-inset-bottom)); }
+  .game-shell .environment-scene .environment-confirm p { min-width: 0; }
+  .game-shell .environment-scene .environment-confirm p b { margin: 1px 0; font-size: 1rem; }
+  .game-shell .environment-scene .environment-confirm .primary-action { width: auto; min-width: 148px; min-height: 44px; margin: 0; padding: 8px 10px; }
+}
+
+:is(.viewport-phone-portrait,.viewport-phone-landscape,.viewport-tablet-portrait,.viewport-tablet-landscape) .results-scene { display: flex; flex-direction: column; overflow: hidden; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+:is(.viewport-phone-portrait,.viewport-phone-landscape,.viewport-tablet-portrait,.viewport-tablet-landscape) .results-scene .result-actions { flex: 0 0 auto; margin-top: 8px; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+:is(.viewport-phone-portrait,.viewport-phone-landscape,.viewport-tablet-portrait,.viewport-tablet-landscape) .results-scene .science-toggle { flex: 0 0 auto; margin: 8px auto 0; }
+@media (max-width: 760px) {
+  .results-scene .result-hero { grid-template-columns: 105px 1fr; gap: 10px; text-align: left; }
+  .results-scene .result-orbit { width: 102px; height: 102px; margin: 0; }
+  .results-scene .result-orbit .microbe { width: 78px; height: 48px; }
+  .results-scene h2 { font-size: clamp(2rem, 9vw, 3.4rem); }
+  .results-scene h3 { margin-block: 4px; font-size: .9rem; }
+  .results-scene .result-lede { margin: 5px 0; font-size: .72rem; }
+  .results-scene .score-pair { width: 100%; margin: 6px auto; }
+  .results-scene .score-pair div { padding: 5px; }
+  .results-scene .score-pair b { font-size: 1.45rem; }
+  .results-scene .result-environment { margin: 2px; font-size: .7rem; }
+  .results-scene .result-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 4px; }
+  .results-scene .result-actions button { min-width: 0; min-height: 40px; padding: 5px 7px !important; font-size: .65rem; }
+  .results-scene .result-actions .primary-action { width: auto; }
+  .science-results-backdrop { padding: max(5px, env(safe-area-inset-top)) max(5px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left)); }
+  .science-results-modal { border-radius: 17px; }
+  .science-results-modal > header { padding: 8px 10px; }
+  .science-results-scroll { padding: 8px; }
+  .science-results-scroll .why-won { display: block; padding: 10px; }
+}
+
+@media (orientation: landscape) {
+  .game-shell .results-scene.layered-results {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto auto;
+    gap: 5px 14px;
+    padding-top: 2px;
+    text-align: left;
+  }
+  .game-shell .results-scene .result-hero { grid-column: 1; grid-row: 1 / 5; align-self: center; grid-template-columns: minmax(90px, 35%) 1fr; gap: 10px; }
+  .game-shell .results-scene .result-orbit { width: min(28dvh, 140px); height: min(28dvh, 140px); }
+  .game-shell .results-scene .result-orbit .microbe { width: min(19dvh, 100px); height: min(12dvh, 62px); }
+  .game-shell .results-scene h2 { font-size: clamp(1.8rem, 8dvh, 3.4rem); }
+  .game-shell .results-scene .result-lede { margin-block: 4px !important; font-size: .7rem; }
+  .game-shell .results-scene .score-pair { grid-column: 2; grid-row: 1; width: 100%; margin: 0; align-self: end; }
+  .game-shell .results-scene .score-pair div { padding: 5px; }
+  .game-shell .results-scene .score-pair b { font-size: 1.35rem; }
+  .game-shell .results-scene .result-environment { grid-column: 2; grid-row: 2; margin: 0; text-align: center; font-size: .68rem; }
+  .game-shell .results-scene .science-toggle { grid-column: 2; grid-row: 3; width: 100%; max-width: none; min-height: 40px; margin: 0; padding: 7px; }
+  .game-shell .results-scene .result-actions { grid-column: 2; grid-row: 4; align-self: end; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 4px; margin: 0; padding: 0 0 max(2px, env(safe-area-inset-bottom)); }
+  .game-shell .results-scene .result-actions button { min-width: 0; min-height: 40px; padding: 5px !important; font-size: .61rem; }
+}
+@media (orientation: landscape) and (min-width: 761px) {
+  .game-shell .results-scene .result-actions { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
