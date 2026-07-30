@@ -37,6 +37,9 @@ THEME = Theme()
 @dataclass(frozen=True)
 class FighterVisual:
     morphology: str
+    morphology_variant: str
+    movement_style: str
+    personality: str
     primary: Color
     secondary: Color
     accent: Color
@@ -67,6 +70,22 @@ PALETTES: tuple[tuple[Color, Color, Color], ...] = (
     ((238, 189, 88), (199, 83, 80), (120, 241, 187)),
     ((179, 124, 255), (75, 75, 170), (255, 225, 117)),
 )
+
+MORPHOLOGY_VARIANTS = {
+    "coccus": ("single", "paired", "chain", "cluster"),
+    "bacillus": ("short_rod", "long_rod", "curved_rod", "paired_rods"),
+    "spiral": ("vibrio", "spirillum", "spirochete"),
+    "filamentous": ("thread", "branched", "segmented"),
+    "irregular": ("lobed", "angular", "budding"),
+}
+
+MOVEMENT_STYLES = {
+    "coccus": ("roll", "bounce", "tumble"),
+    "bacillus": ("glide", "swim", "dart"),
+    "spiral": ("undulate", "corkscrew", "swim"),
+    "filamentous": ("stretch", "wave", "glide"),
+    "irregular": ("pulse", "creep", "hop"),
+}
 
 
 ENVIRONMENT_VISUALS = {
@@ -147,11 +166,15 @@ def epithet_for(entry: BacteriumCatalogEntry) -> str:
 def fighter_visual(entry: BacteriumCatalogEntry) -> FighterVisual:
     seed = _stable_bytes(entry.catalog_id)
     primary, secondary, accent = PALETTES[seed[2] % len(PALETTES)]
+    morphology = morphology_for(entry)
     motility = sanitize_designation(entry.motility).casefold()
     motility_unknown = motility in {"", "unknown", "not specified", "no data"}
     reported_motile = "motile" in motility and not any(term in motility for term in ("non-motile", "nonmotile", "not motile"))
     return FighterVisual(
-        morphology=morphology_for(entry),
+        morphology=morphology,
+        morphology_variant=MORPHOLOGY_VARIANTS[morphology][seed[6] % len(MORPHOLOGY_VARIANTS[morphology])],
+        movement_style=MOVEMENT_STYLES[morphology][seed[7] % len(MOVEMENT_STYLES[morphology])],
+        personality=("bold", "guarded", "curious", "restless")[seed[8] % 4],
         primary=primary,
         secondary=secondary,
         accent=accent,

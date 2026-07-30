@@ -233,6 +233,7 @@ class MicrobialMayhemGUI:
         self.input = InputController()
         self.transition = ScreenTransition()
         self.battle_timeline: BattleTimeline | None = None
+        self.visual_cache: dict[tuple, pygame.Surface] = {}
         self.flavor = FlavorDeck(f"session-{random.randrange(1_000_000_000)}")
         self.input_debug = os.environ.get("MICROBIAL_MAYHEM_INPUT_DEBUG") == "1"
         self.last_window_mouse = (0, 0)
@@ -917,7 +918,9 @@ class MicrobialMayhemGUI:
         if not self.state.selected_catalog_entry:
             if self.state.game_mode == TWO_PLAYERS and self.state.active_player == 2 and self.state.player1_fighter:
                 self.text("PLAYER 1 IS READY", self.small, THEME.mint, topleft=(x, y))
-                self.draw_bacterium_sprite(self.state.player1_fighter, (rect.centerx, y + 120), .9, phase=pygame.time.get_ticks() / 500)
+                preview_phase = pygame.time.get_ticks() / 1000
+                preview_state = "ability" if preview_phase % 4.2 > 3.55 and not self.settings.reduced_motion else "idle"
+                self.draw_bacterium_sprite(self.state.player1_fighter, (rect.centerx, y + 120), .9, phase=preview_phase * 2, state=preview_state)
                 p1_name = format_bacterial_name(self.state.player1_fighter.full_name)
                 self.draw_scientific_name(p1_name, x, y + 210, self.font, THEME.text, rect.width - 28)
                 self.text("PLAYER 2", self.small, THEME.coral, topleft=(x, y + 270))
@@ -935,7 +938,9 @@ class MicrobialMayhemGUI:
         self.text(visual.epithet, self.small, THEME.mint, topleft=(x, y + 29))
         selected_age = max(0, pygame.time.get_ticks() - self.state.selected_at)
         pop = 1.0 if self.settings.reduced_motion else .92 + .08 * ease_out_cubic(selected_age / 320)
-        self.draw_bacterium_sprite(entry, (rect.right - 92, y + 37), 0.58 * pop, facing=-1, phase=pygame.time.get_ticks() / 500)
+        preview_phase = pygame.time.get_ticks() / 1000 + (sum(ord(char) for char in entry.catalog_id) % 17) * .1
+        preview_state = "attack" if preview_phase % 4.6 > 4.12 and not self.settings.reduced_motion else "idle"
+        self.draw_bacterium_sprite(entry, (rect.right - 92, y + 37), 0.58 * pop, facing=-1, phase=preview_phase * 2, state=preview_state)
         y += 82
         if self.state.show_all_bgcs:
             self.text(f"ALL {len(entry.accessions)} MIBIG BGC IDS", self.small, (255, 238, 133), topleft=(x, y))
@@ -1411,7 +1416,9 @@ class MicrobialMayhemGUI:
     def draw_bacterium_sprite(self, entry: BacteriumCatalogEntry, pos, scale=1.0, facing=1, phase=0.0, state="idle") -> None:
         """Draw an original procedural fighter; catalog values remain untouched."""
         visual = fighter_visual(entry)
-        idle_motion = 0 if self.settings.reduced_motion else math.sin(phase) * 5 * scale
+        personality_speed = {"bold": 1.3, "guarded": .72, "curious": .9, "restless": 1.55}[visual.personality]
+        motion_phase = phase * personality_speed
+        idle_motion = 0 if self.settings.reduced_motion else math.sin(motion_phase) * 5 * scale
         if state == "victory" and not self.settings.reduced_motion:
             idle_motion -= abs(math.sin(phase * 1.7)) * 18 * scale
         if state == "defeat":
@@ -1419,9 +1426,23 @@ class MicrobialMayhemGUI:
             scale *= .86
         x, y = int(pos[0]), int(pos[1] + idle_motion)
         radius = max(7, int(48 * scale))
+        squash_x = squash_y = 1.0
+        if not self.settings.reduced_motion:
+            pulse = math.sin(motion_phase * 1.7)
+            squash_x, squash_y = 1 + pulse * .025, 1 - pulse * .025
+            if state in {"attack", "ability"}:
+                squash_x, squash_y = 1.14, .88
+            elif state == "hit":
+                squash_x, squash_y = .84, 1.12
+            elif state in {"defend", "stressed"}:
+                squash_x, squash_y = .91, 1.06
+        rx, ry = max(5, int(radius * squash_x)), max(5, int(radius * squash_y))
+        self.draw_fighter_shadow((x, int(pos[1] + radius * .72)), scale, state)
         primary, secondary, accent = visual.primary, visual.secondary, visual.accent
         if state == "hit":
             primary = tuple(min(255, c + 90) for c in primary)
+        elif state == "stressed":
+            primary = tuple(max(0, int(c * .78)) for c in primary)
         if state == "ability":
             for ring in range(3, 0, -1):
                 pygame.draw.circle(self.screen, accent, (x, y), radius + ring * 12, max(1, ring))
@@ -1429,7 +1450,7 @@ class MicrobialMayhemGUI:
         if visual.has_flagella:
             points = [(x - facing * radius, y + radius // 3)]
             for i in range(1, 6):
-                points.append((x - facing * (radius + i * radius // 2), y + int(math.sin(phase * 2 + i) * radius * .35)))
+                points.append((x - facing * (radius + i * radius // 2), y + int(math.sin(motion_phase * 2 + i) * radius * .35)))
             pygame.draw.aalines(self.screen, accent, False, points, max(1, int(2 * scale)))
         if visual.has_pili and scale > .35:
             for i in range(7):
@@ -1438,20 +1459,35 @@ class MicrobialMayhemGUI:
                 end = (x + int(math.cos(angle) * radius * 1.15), y + int(math.sin(angle) * radius * 1.15))
                 pygame.draw.line(self.screen, secondary, start, end, max(1, int(2 * scale)))
         if visual.morphology == "coccus":
-            offsets = ((-22, -12), (15, -18), (24, 16), (-15, 20), (0, 0))
+            offsets = {
+                "single": ((0, 0),),
+                "paired": ((-18, 0), (18, 0)),
+                "chain": ((-36, 8), (-18, -4), (0, 4), (18, -5), (36, 5)),
+                "cluster": ((-22, -12), (15, -18), (24, 16), (-15, 20), (0, 0)),
+            }[visual.morphology_variant]
             for ox, oy in offsets:
-                pygame.draw.circle(self.screen, primary, (x + int(ox * scale), y + int(oy * scale)), int(28 * scale))
-                pygame.draw.circle(self.screen, secondary, (x + int(ox * scale), y + int(oy * scale)), int(28 * scale), max(1, int(3 * scale)))
+                cell_r = int((34 if visual.morphology_variant == "single" else 23 if visual.morphology_variant == "chain" else 28) * scale)
+                center = (x + int(ox * scale), y + int(oy * scale))
+                pygame.draw.ellipse(self.screen, primary, (center[0] - cell_r, center[1] - int(cell_r * squash_y), cell_r * 2, int(cell_r * squash_y * 2)))
+                pygame.draw.ellipse(self.screen, secondary, (center[0] - cell_r, center[1] - int(cell_r * squash_y), cell_r * 2, int(cell_r * squash_y * 2)), max(1, int(3 * scale)))
         elif visual.morphology == "bacillus":
-            body = pygame.Rect(0, 0, radius * 2, int(radius * 1.15)); body.center = (x, y)
+            length = {"short_rod": 1.45, "long_rod": 2.25, "curved_rod": 1.9, "paired_rods": 1.5}[visual.morphology_variant]
+            body = pygame.Rect(0, 0, int(rx * length), int(ry * .95)); body.center = (x, y)
             pygame.draw.rect(self.screen, primary, body, border_radius=body.height // 2)
             pygame.draw.rect(self.screen, secondary, body, max(1, int(4 * scale)), border_radius=body.height // 2)
+            if visual.morphology_variant == "paired_rods":
+                second = body.move(int(-facing * 8 * scale), int(24 * scale))
+                pygame.draw.rect(self.screen, primary, second, border_radius=second.height // 2)
+                pygame.draw.rect(self.screen, secondary, second, max(1, int(3 * scale)), border_radius=second.height // 2)
+            elif visual.morphology_variant == "curved_rod":
+                pygame.draw.arc(self.screen, secondary, body.inflate(8, 20), .15, math.pi - .15, max(2, int(5 * scale)))
         elif visual.morphology in {"spiral", "filamentous"}:
             points = []
             for i in range(15):
                 px = x - radius + int(i * radius * 2 / 14)
-                amp = radius * (.38 if visual.morphology == "spiral" else .22)
-                py = y + int(math.sin(i * .9 + phase) * amp)
+                frequency = 1.25 if visual.morphology_variant in {"spirochete", "segmented"} else .8
+                amp = radius * (.42 if visual.morphology == "spiral" else .24)
+                py = y + int(math.sin(i * frequency + motion_phase) * amp)
                 points.append((px, py))
             pygame.draw.lines(self.screen, secondary, False, points, max(4, int(20 * scale)))
             pygame.draw.lines(self.screen, primary, False, points, max(3, int(14 * scale)))
@@ -1475,6 +1511,8 @@ class MicrobialMayhemGUI:
                 sx = x - radius // 2 + i * radius // 2
                 sy = y - radius - 18 - (i % 2) * 8
                 pygame.draw.circle(self.screen, THEME.yellow, (sx, sy), max(2, int(4 * scale)))
+        if state == "stressed":
+            pygame.draw.arc(self.screen, accent, (x - rx - 8, y - ry - 8, rx * 2 + 16, ry * 2 + 16), .2, 2.8, max(1, int(2 * scale)))
         # A tiny expressive face gives procedural placeholders a shared identity.
         eye_y = y - max(2, radius // 7)
         eye_dx = max(3, radius // 4)
@@ -1486,6 +1524,19 @@ class MicrobialMayhemGUI:
                 pygame.draw.arc(self.screen, THEME.ink, mouth, math.pi, math.tau, max(1, int(2 * scale)))
             else:
                 pygame.draw.arc(self.screen, THEME.ink, mouth, 0, math.pi, max(1, int(2 * scale)))
+
+    def draw_fighter_shadow(self, pos, scale: float, state: str = "idle") -> None:
+        width = max(14, int(94 * scale * (.82 if state in {"victory", "attack"} else 1)))
+        height = max(5, int(22 * scale))
+        key = ("shadow", width, height)
+        shadow = self.visual_cache.get(key)
+        if shadow is None:
+            shadow = pygame.Surface((width + 16, height + 12), pygame.SRCALPHA)
+            for inset in range(6, 0, -1):
+                alpha = 8 + (6 - inset) * 5
+                pygame.draw.ellipse(shadow, (0, 5, 12, alpha), (inset, inset // 2, width + 12 - inset * 2, height + 8 - inset))
+            self.visual_cache[key] = shadow
+        self.screen.blit(shadow, (int(pos[0] - shadow.get_width() / 2), int(pos[1] - shadow.get_height() / 2)))
 
     def draw_preview(self) -> None:
         arena = environment_visual(self.state.environment)
@@ -1518,7 +1569,9 @@ class MicrobialMayhemGUI:
         pygame.draw.rect(card, (*THEME.cyan, 220), card.get_rect(), 2, border_radius=24)
         self.screen.blit(card, rect)
         self.text(label, self.tiny, THEME.yellow, center=(rect.centerx, rect.y + 28))
-        self.draw_bacterium_sprite(entry, (rect.centerx, rect.y + 155), 1.15, facing=facing, phase=pygame.time.get_ticks() / 500)
+        preview_phase = pygame.time.get_ticks() / 1000
+        preview_state = "ability" if preview_phase % 4.4 > 3.8 and not self.settings.reduced_motion else "idle"
+        self.draw_bacterium_sprite(entry, (rect.centerx, rect.y + 155), 1.15, facing=facing, phase=preview_phase * 2, state=preview_state)
         if reveal > .25:
             name = format_bacterial_name(entry.full_name)
             for i, line in enumerate(self.wrap(name.scientific, self.font_italic, rect.width - 50)[:2]):
@@ -1591,6 +1644,7 @@ class MicrobialMayhemGUI:
         shake = 0
         if not self.settings.reduced_motion and cue.kind in {"attack", "counter", "ability", "finish"} and cue_age < .16:
             shake = int(math.sin(now_ms / 22) * 4)
+        self.draw_petri_arena(arena, elapsed, shake)
         self.text(arena.title.upper(), self.tiny, arena.particle, center=(WIDTH // 2 + shake, 30))
         entrance = ease_out_cubic(min(1.0, elapsed / 1.0)) if not self.settings.reduced_motion else 1.0
         p_pos = [int(-130 + 480 * entrance), 365]
@@ -1608,7 +1662,7 @@ class MicrobialMayhemGUI:
         elif cue.kind == "dodge" and cue_age < .6:
             player_state = "dodge"; p_pos[0] -= 0 if self.settings.reduced_motion else 38
         elif cue.kind == "environment" and cue_age < .65:
-            player_state = "stunned"
+            player_state = opponent_state = "stressed"
         elif cue.kind == "resolution":
             if self.state.winner_flag == "A": player_state, opponent_state = "victory", "defeat"
             elif self.state.winner_flag == "B": player_state, opponent_state = "defeat", "victory"
@@ -1622,8 +1676,16 @@ class MicrobialMayhemGUI:
             anticipation = 1 - (next_cue.at - elapsed) / .3
             radius = int(76 + anticipation * 25)
             pygame.draw.circle(self.screen, THEME.yellow, actor_pos, radius, 2)
-        self.draw_bacterium_sprite(self.state.player_entry, p_pos, 1.42, 1, elapsed * 3, player_state)
-        self.draw_bacterium_sprite(self.state.opponent_entry, o_pos, 1.42, -1, elapsed * 2.8, opponent_state)
+        player_hp, opponent_hp = timeline_health(timeline.progress(elapsed), self.state.winner_flag)
+        self.draw_colony_entourage(self.state.player_entry, p_pos, self.state.player1_colony_cfu, 1, elapsed, player_hp)
+        self.draw_colony_entourage(self.state.opponent_entry, o_pos, self.state.player2_colony_cfu, -1, elapsed, opponent_hp)
+        fighters = [
+            (p_pos[1], self.state.player_entry, p_pos, 1, elapsed * 3, player_state),
+            (o_pos[1], self.state.opponent_entry, o_pos, -1, elapsed * 2.8, opponent_state),
+        ]
+        for _, entry, position, facing, sprite_phase, sprite_state in sorted(fighters, key=lambda item: item[0]):
+            perspective = .94 + max(0, min(1, (position[1] - 285) / 180)) * .1
+            self.draw_bacterium_sprite(entry, position, 1.42 * perspective, facing, sprite_phase, sprite_state)
         if cue.kind in {"attack", "counter", "ability", "finish"} and cue_age < .42 and cue.actor in {"player", "opponent"}:
             start, end = (p_pos, o_pos) if cue.actor == "player" else (o_pos, p_pos)
             color = fighter_visual(self.state.player_entry if cue.actor == "player" else self.state.opponent_entry).accent
@@ -1637,11 +1699,11 @@ class MicrobialMayhemGUI:
             for i, point in enumerate(visible[-7:]):
                 pygame.draw.circle(self.screen, color, point, 3 + i % 3)
         self.draw_battle_foreground(arena, elapsed, cue)
-        player_hp, opponent_hp = timeline_health(timeline.progress(elapsed), self.state.winner_flag)
         player_label = "PLAYER 1" if self.state.game_mode == TWO_PLAYERS else "YOU"
         opponent_label = "PLAYER 2" if self.state.game_mode == TWO_PLAYERS else "RIVAL"
         self.draw_battle_hud(self.state.player_entry, pygame.Rect(55, 58, 440, 72), player_hp, player_label)
         self.draw_battle_hud(self.state.opponent_entry, pygame.Rect(705, 58, 440, 72), opponent_hp, opponent_label, right=True)
+        self.draw_colony_progress(timeline.progress(elapsed), player_hp, opponent_hp)
         now = pygame.time.get_ticks()
         for ft in self.state.floating_texts[:]:
             age = now - ft.born
@@ -1661,6 +1723,58 @@ class MicrobialMayhemGUI:
         self.text(f"{min(BATTLE_DURATION_SECONDS, elapsed):.1f} / {BATTLE_DURATION_SECONDS:.1f}s", self.tiny, THEME.muted, topleft=(55, 755))
         if timeline.complete(elapsed):
             self.finish_animation()
+
+    def draw_petri_arena(self, arena, elapsed: float, shake: int = 0) -> None:
+        """Layered glass dish and fluid surface; decorative only."""
+        dish = pygame.Rect(88 + shake, 164, 1024, 430)
+        pygame.draw.ellipse(self.screen, (3, 12, 23), dish.move(0, 24))
+        pygame.draw.ellipse(self.screen, tuple(max(0, c - 24) for c in arena.bottom), dish)
+        inner = dish.inflate(-34, -32)
+        pygame.draw.ellipse(self.screen, arena.top, inner)
+        fluid = pygame.Surface((inner.width, inner.height), pygame.SRCALPHA)
+        pygame.draw.ellipse(fluid, (*arena.bottom, 105), fluid.get_rect())
+        for index in range(7):
+            y = 45 + index * 35 + int(math.sin(elapsed * .45 + index) * 4)
+            pygame.draw.arc(fluid, (*arena.particle, 20), (30, y, inner.width - 60, 45), .1, 3.0, 2)
+        self.screen.blit(fluid, inner)
+        pygame.draw.ellipse(self.screen, (186, 236, 244), dish, 5)
+        pygame.draw.arc(self.screen, (244, 255, 255), dish.inflate(-7, -7), 3.45, 5.75, 3)
+        pygame.draw.arc(self.screen, (*arena.particle,), dish.inflate(-18, -18), .18, 2.85, 2)
+        glass = pygame.Surface((dish.width, dish.height), pygame.SRCALPHA)
+        pygame.draw.ellipse(glass, (220, 248, 255, 14), (12, 8, dish.width - 24, dish.height - 16))
+        pygame.draw.arc(glass, (255, 255, 255, 60), (40, 28, dish.width - 80, 112), 3.35, 5.9, 4)
+        self.screen.blit(glass, dish)
+
+    def draw_colony_entourage(self, entry, pos, cfu: int, facing: int, elapsed: float, health: int) -> None:
+        visual = fighter_visual(entry)
+        full_count = max(3, min(13, 3 + round(cfu / 100)))
+        count = max(2, round(full_count * (.35 + .65 * health / 100)))
+        seed = sum(ord(char) for char in entry.catalog_id)
+        for index in range(count):
+            angle = (seed % 31) + index * 2.399
+            orbit = 72 + (index % 4) * 22
+            drift = 0 if self.settings.reduced_motion else math.sin(elapsed * (.55 + index % 3 * .12) + angle) * 5
+            x = int(pos[0] - facing * 18 + math.cos(angle) * orbit)
+            y = int(pos[1] + 58 + math.sin(angle) * 42 + drift)
+            radius = 4 + index % 3
+            self.draw_fighter_shadow((x, y + 5), .12)
+            pygame.draw.circle(self.screen, visual.primary, (x, y), radius)
+            pygame.draw.circle(self.screen, visual.secondary, (x, y), radius, 1)
+
+    def draw_colony_progress(self, progress: float, player_hp: int, opponent_hp: int) -> None:
+        rect = pygame.Rect(435, 716, 330, 48)
+        surface = pygame.Surface(rect.size, pygame.SRCALPHA)
+        pygame.draw.rect(surface, (*THEME.panel, 215), surface.get_rect(), border_radius=12)
+        self.screen.blit(surface, rect)
+        self.text("COLONY MOMENTUM", self.tiny, THEME.muted, center=(rect.centerx, rect.y + 11))
+        track = pygame.Rect(rect.x + 18, rect.y + 28, rect.width - 36, 7)
+        pygame.draw.rect(self.screen, (50, 65, 76), track, border_radius=4)
+        midpoint = track.centerx
+        pygame.draw.line(self.screen, THEME.text, (midpoint, track.y - 2), (midpoint, track.bottom + 2), 1)
+        balance = (player_hp - opponent_hp) / 200
+        marker_x = int(midpoint + balance * track.width)
+        pygame.draw.circle(self.screen, THEME.mint if balance >= 0 else THEME.coral, (marker_x, track.centery), 7)
+        pygame.draw.rect(self.screen, THEME.cyan, (track.x, rect.y + 40, int(track.width * max(0, min(1, progress))), 2))
 
     def draw_battle_foreground(self, arena, elapsed: float, cue) -> None:
         seed = f"{self.state.battle_seed}:{arena.key}:foreground"
