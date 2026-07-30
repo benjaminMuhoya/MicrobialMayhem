@@ -1,4 +1,4 @@
-import type { BattlePose } from "./visual-profile";
+import type { BattlePose, VisualShape } from "./visual-profile";
 
 export interface SpriteSheetDefinition{
   src:string;frameWidth:number;frameHeight:number;frames:number;anchor:[number,number];
@@ -14,8 +14,8 @@ export function loadSpriteManifest(){
   return manifestPromise;
 }
 
-export async function fighterSpriteSheet(catalogId:string,pose:BattlePose){
-  const manifest=await loadSpriteManifest(),definition=manifest[catalogId]?.[pose];
+export async function fighterSpriteSheet(catalogId:string,pose:BattlePose,shape?:VisualShape){
+  const manifest=await loadSpriteManifest(),definition=manifest[catalogId]?.[pose]??(shape?manifest[`shape:${shape}`]?.[pose]:undefined);
   if(!definition)return null;
   if(!imageCache.has(definition.src))imageCache.set(definition.src,new Promise(resolve=>{const image=new Image();image.decoding="async";image.onload=()=>resolve(image);image.onerror=()=>resolve(null);image.src=definition.src}));
   return await imageCache.get(definition.src)?definition:null;

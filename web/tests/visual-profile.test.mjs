@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FIGHTER_ANIMATIONS, colonyVisualCount, differentiatedDuelProfiles, fighterVisualProfile, livingColonyCount } from "../app/game/visual-profile.ts";
 import { clearSpriteSheetCache, loadSpriteManifest } from "../app/game/sprite-sheets.ts";
+import fs from "node:fs";
 
 const fighter=(id,cellShape,motility)=>({catalogId:id,fullName:`Microbe ${id}`,cellShape,motility,accessions:[],products:[],activities:[],traits:[]});
 
@@ -45,4 +46,11 @@ test("the shared visual contract covers every requested battle pose",()=>{
 test("sprite sheet manifest has an APK-safe procedural fallback",async()=>{
   clearSpriteSheetCache();
   assert.deepEqual(await loadSpriteManifest(),{});
+  const manifest=JSON.parse(fs.readFileSync(new URL("../public/fighters/manifest.json",import.meta.url),"utf8"));
+  assert.equal(manifest["shape:coccus"].idle.frames,6);
+  assert.ok(fs.existsSync(new URL("../public/fighters/coccus-idle.svg",import.meta.url)));
+  const arena=fs.readFileSync(new URL("../app/components/PhaserArena.tsx",import.meta.url),"utf8");
+  const page=fs.readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+  assert.match(arena,/fighterSpriteSheet/);
+  assert.match(page,/sheet-microbe/);
 });

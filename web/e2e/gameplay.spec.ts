@@ -89,7 +89,7 @@ test("two-player locks distinct fighters and completes both independent setups",
   await setupPlayer(page, 2);
   await expect(page.getByTestId("screen-environment")).toBeVisible();
   await page.getByRole("button", { name: "Enter this habitat →" }).click();
-  await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
+  await expect(page.getByText("Player 2", { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Enter the microscopic arena →" }).click();
   await page.getByRole("button", { name: "Pause battle" }).click();
   await expect(page.getByRole("dialog", { name: "Battle paused" })).toBeVisible();
@@ -97,7 +97,7 @@ test("two-player locks distinct fighters and completes both independent setups",
   await page.getByRole("button", { name: /Resume culture/ }).click();
   await page.getByRole("button", { name: "Skip battle →" }).click();
   await expect(page.getByTestId("screen-results")).toBeVisible();
-  await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
+  await expect(page.getByText("Player 2", { exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Main menu" }).click();
   await expect(page.getByTestId("screen-home")).toBeVisible();
 });
