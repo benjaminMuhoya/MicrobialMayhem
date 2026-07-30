@@ -5,6 +5,8 @@ export type VisualAppendage="none"|"polar"|"tuft"|"peritrichous"|"pili";
 export type VisualExpression="bold"|"cheery"|"focused"|"grumpy"|"curious";
 export type VisualTexture="granular"|"smooth"|"banded"|"speckled"|"translucent";
 export type VisualPersonality="sprinter"|"guardian"|"coordinator"|"trickster"|"sentinel"|"explorer";
+export type LocomotionStyle="roll"|"tumble"|"glide"|"dart"|"undulate"|"corkscrew"|"stretch"|"pulse";
+export type BattlePose="entrance"|"idle"|"ready"|"move"|"anticipate"|"attack"|"defend"|"impact"|"arsenal"|"stress"|"decline"|"recover"|"victory"|"defeat";
 
 const fallbackShapes:VisualShape[]=["coccus","rod","curved","vibrio","spiral","filament","chain","cluster","spore","capsule","irregular"];
 const palettes=[
@@ -18,6 +20,21 @@ const textures:VisualTexture[]=["granular","smooth","banded","speckled","translu
 const personalities:VisualPersonality[]=["sprinter","guardian","coordinator","trickster","sentinel","explorer"];
 const shapeNames:Record<VisualShape,string>={coccus:"Coccus",rod:"Bacillus",curved:"Curved rod",vibrio:"Vibrio",spiral:"Spiral",filament:"Filamentous",chain:"Cell chain",cluster:"Cell cluster",spore:"Spore former",capsule:"Encapsulated",irregular:"Pleomorphic"};
 const personalityNames:Record<VisualPersonality,string>={sprinter:"The Sprinter",guardian:"The Guardian",coordinator:"The Collective",trickster:"The Trickster",sentinel:"The Sentinel",explorer:"The Explorer"};
+const locomotionByShape:Record<VisualShape,LocomotionStyle>={
+  coccus:"roll",cluster:"tumble",chain:"undulate",rod:"glide",curved:"undulate",
+  vibrio:"dart",spiral:"corkscrew",filament:"stretch",spore:"tumble",
+  capsule:"glide",irregular:"pulse",
+};
+
+export const FIGHTER_ANIMATIONS:Record<BattlePose,{frames:number;frameMs:number;loop:boolean}>={
+  entrance:{frames:8,frameMs:70,loop:false},idle:{frames:6,frameMs:150,loop:true},
+  ready:{frames:4,frameMs:120,loop:true},move:{frames:8,frameMs:75,loop:true},
+  anticipate:{frames:4,frameMs:70,loop:false},attack:{frames:6,frameMs:55,loop:false},
+  defend:{frames:4,frameMs:90,loop:false},impact:{frames:4,frameMs:50,loop:false},
+  arsenal:{frames:8,frameMs:60,loop:false},stress:{frames:6,frameMs:95,loop:true},
+  decline:{frames:4,frameMs:130,loop:false},recover:{frames:5,frameMs:85,loop:false},
+  victory:{frames:8,frameMs:90,loop:false},defeat:{frames:6,frameMs:110,loop:false},
+};
 
 export function visualHash(value:string){let hash=2166136261;for(let i=0;i<value.length;i++){hash^=value.charCodeAt(i);hash=Math.imul(hash,16777619)}return hash>>>0}
 
@@ -30,7 +47,17 @@ export function fighterVisualProfile(fighter:Fighter){
   const appendage:VisualAppendage=motility.includes("non-motile")||motility.includes("nonmotile")?"pili":motility.includes("motile")?appendages[1+(hash%3)]:appendages[(hash>>>5)%appendages.length];
   const palette=palettes[(hash>>>9)%palettes.length];
   const personality=personalities[(hash>>>21)%personalities.length];
-  return {shape,shapeName:shapeNames[shape],appendage,expression:expressions[(hash>>>14)%expressions.length],texture:textures[(hash>>>17)%textures.length],personality,archetype:personalityNames[personality],primary:palette[0],secondary:palette[1],motion:(hash>>>18)%3,tilt:(hash%17)-8,scaleX:.9+((hash>>>23)%5)*.06,scaleY:.88+((hash>>>26)%5)*.055};
+  return {shape,shapeName:shapeNames[shape],appendage,expression:expressions[(hash>>>14)%expressions.length],texture:textures[(hash>>>17)%textures.length],personality,archetype:personalityNames[personality],locomotion:locomotionByShape[shape],primary:palette[0],secondary:palette[1],motion:(hash>>>18)%3,tilt:(hash%17)-8,scaleX:.9+((hash>>>23)%5)*.06,scaleY:.88+((hash>>>26)%5)*.055};
+}
+
+export function colonyVisualCount(cfu:number,maxCells:number){
+  const normalized=Math.max(0,Math.min(1000,cfu))/1000;
+  return Math.max(cfu>0?3:1,Math.round(3+Math.pow(normalized,.72)*(maxCells-3)));
+}
+
+export function livingColonyCount(cfu:number,health:number,maxCells:number){
+  const full=colonyVisualCount(cfu,maxCells);
+  return Math.max(health>0?2:1,Math.round(full*(.18+.82*Math.max(0,Math.min(100,health))/100)));
 }
 
 export const duelShapeOrder:VisualShape[]=["rod","coccus","vibrio","spiral","filament","cluster","chain","spore","capsule","curved","irregular"];
