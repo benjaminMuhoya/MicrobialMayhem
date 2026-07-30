@@ -44,7 +44,9 @@ export function PhaserArena({paused=false,reducedMotion=false,quality="high",env
           if(profile.appendage==="polar"||profile.appendage==="tuft"){appendage.lineBetween(side*dimensions[0]*.45,0,side*dimensions[0]*.72,-15).lineBetween(side*dimensions[0]*.72,-15,side*dimensions[0],10);if(profile.appendage==="tuft")appendage.lineBetween(side*dimensions[0]*.5,8,side*dimensions[0]*.9,25)}
           else if(profile.appendage==="peritrichous"||profile.appendage==="pili")for(let i=-2;i<=2;i++)appendage.lineBetween(i*19,-dimensions[1]*.4,i*25,-dimensions[1]*.72);
           details.push(appendage,this.add.circle(-15,-6,5,0x06120f),this.add.circle(15,-6,profile.expression==="curious"?7:5,0x06120f),this.add.arc(0,12,profile.expression==="bold"?12:9,0,180,false,0x06120f,0).setStrokeStyle(2,0x06120f));
-          return this.add.container(0,0,details).setScale(scale*(flip?-1:1),scale).setAngle(profile.tilt);
+          const textureKey=`morph-${profile.shape}-${profile.appendage}-${profile.texture}-${profile.expression}-${profile.primary.slice(1)}-${profile.secondary.slice(1)}`,art=this.add.container(128,96,details);
+          if(!this.textures.exists(textureKey)){const atlas=this.make.renderTexture({x:0,y:0,width:256,height:192,add:false});atlas.draw(art);atlas.saveTexture(textureKey);atlas.destroy()}
+          art.destroy(true);const sprite=this.add.image(0,0,textureKey);return this.add.container(0,0,[sprite]).setScale(scale*(flip?-1:1),scale).setAngle(profile.tilt);
         }
         makeColony(side:"left"|"right",profile:Profile,cfu:number){
           const flip=side==="right",centerX=this.scale.width*(flip?.73:.27),centerY=this.scale.height*.54,full=livingColonyCount(cfu,100,limits.colony),cells:Cell[]=[];
