@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { differentiatedDuelProfiles, fighterVisualProfile } from "../app/game/visual-profile.ts";
+import { FIGHTER_ANIMATIONS, colonyVisualCount, differentiatedDuelProfiles, fighterVisualProfile, livingColonyCount } from "../app/game/visual-profile.ts";
+import { clearSpriteSheetCache, loadSpriteManifest } from "../app/game/sprite-sheets.ts";
 
 const fighter=(id,cellShape,motility)=>({catalogId:id,fullName:`Microbe ${id}`,cellShape,motility,accessions:[],products:[],activities:[],traits:[]});
 
@@ -28,4 +29,20 @@ test("similar opponents receive distinct presentation without changing fighter d
   assert.notEqual(`${leftProfile.shape}-${leftProfile.primary}-${leftProfile.appendage}`,`${rightProfile.shape}-${rightProfile.primary}-${rightProfile.appendage}`);
   assert.equal(left.cellShape,"rod");
   assert.equal(right.cellShape,"rod");
+});
+
+test("colony population visibly follows selected CFU and presentation health",()=>{
+  assert.ok(colonyVisualCount(1000,44)>colonyVisualCount(50,44));
+  assert.equal(colonyVisualCount(500,44),colonyVisualCount(500,44));
+  assert.ok(livingColonyCount(1000,20,44)<livingColonyCount(1000,100,44));
+  assert.equal(livingColonyCount(500,72,44),livingColonyCount(500,72,44));
+});
+
+test("the shared visual contract covers every requested battle pose",()=>{
+  assert.deepEqual(Object.keys(FIGHTER_ANIMATIONS),["entrance","idle","ready","move","anticipate","attack","defend","impact","arsenal","stress","decline","recover","victory","defeat"]);
+});
+
+test("sprite sheet manifest has an APK-safe procedural fallback",async()=>{
+  clearSpriteSheetCache();
+  assert.deepEqual(await loadSpriteManifest(),{});
 });

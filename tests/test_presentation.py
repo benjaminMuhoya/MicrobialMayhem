@@ -23,6 +23,9 @@ def test_unknown_morphology_has_stable_procedural_fallback():
     second = fighter_visual(entry())
     assert first == second
     assert first.morphology in {"coccus", "bacillus", "spiral", "filamentous", "irregular"}
+    assert first.morphology_variant
+    assert first.movement_style in {"roll", "bounce", "tumble", "glide", "swim", "dart", "undulate", "corkscrew", "stretch", "wave", "pulse", "creep", "hop"}
+    assert first.personality in {"bold", "guarded", "curious", "restless"}
 
 
 def test_reported_non_motile_cell_does_not_receive_flagella():
