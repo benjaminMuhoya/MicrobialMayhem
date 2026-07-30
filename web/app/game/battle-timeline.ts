@@ -1,9 +1,9 @@
 import type { Winner } from "./types.ts";
 
-export const BATTLE_DURATION_MS = 8000;
+export const BATTLE_DURATION_MS = 10000;
 export const BATTLE_CUES = [
-  [350,"entrance"],[1050,"anticipate"],[1550,"attack"],[2250,"defend"],[2900,"counter"],[3650,"dodge"],
-  [4250,"playerAbility"],[5050,"environment"],[5650,"opponentAbility"],[6350,"pause"],[6850,"finish"],[7550,"resolution"],
+  [0,"entrance"],[1050,"anticipate"],[1750,"attack"],[2650,"defend"],[3450,"counter"],[4250,"dodge"],
+  [5050,"playerAbility"],[6050,"environment"],[6850,"opponentAbility"],[7650,"recovery"],[8350,"finish"],[9300,"resolution"],
 ] as const;
 
 export function battleHealth(progress:number,winner:Winner):[number,number]{

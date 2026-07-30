@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="256" viewBox="0 0 1536 256">
+  <defs>
+    <radialGradient id="cell" cx="35%" cy="28%"><stop stop-color="#d8fff0"/><stop offset=".35" stop-color="#7bf2bc"/><stop offset="1" stop-color="#278c73"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <g fill="none" stroke-linecap="round">
+    <g id="f"><ellipse cx="128" cy="218" rx="60" ry="12" fill="#00130e" opacity=".28" filter="url(#soft)"/><circle cx="128" cy="122" r="72" fill="url(#cell)" stroke="#c9f4ff" stroke-width="8"/><path d="M70 110Q42 88 24 112M186 110q28-22 46 2" stroke="#c9f4ff" stroke-width="5"/><circle cx="104" cy="108" r="7" fill="#06120f"/><circle cx="151" cy="108" r="7" fill="#06120f"/><path d="M110 142q18 15 36 0" stroke="#06120f" stroke-width="5"/></g>
+    <use href="#f" x="256" transform="translate(0 4) scale(1 .97)" transform-origin="384 122"/>
+    <use href="#f" x="512" transform="translate(0 -3) scale(1.02 1.03)" transform-origin="640 122"/>
+    <use href="#f" x="768" transform="rotate(3 896 122)"/>
+    <use href="#f" x="1024" transform="translate(0 2) scale(.99 1.01)" transform-origin="1152 122"/>
+    <use href="#f" x="1280" transform="rotate(-3 1408 122)"/>
+  </g>
+</svg>

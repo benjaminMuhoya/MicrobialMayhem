@@ -16,7 +16,7 @@ Each definition contains:
 - `frames`: state frame count from `FIGHTER_ANIMATIONS`;
 - `anchor`: bottom-center ground anchor `[128, 218]`.
 
-Sheets are horizontal WebP or PNG strips with straight-alpha transparency. Text,
+Sheets are horizontal WebP, PNG, or SVG strips with straight-alpha transparency. Text,
 shadows, lighting and environment effects must not be baked into frames. The
 loader caches the manifest and decoded images, returns `null` for missing or
 invalid sheets, and leaves the procedural morphology renderer active.

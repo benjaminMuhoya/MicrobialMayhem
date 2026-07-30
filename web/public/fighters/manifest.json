@@ -1,1 +1,11 @@
-{}
+{
+  "shape:coccus": {
+    "idle": {
+      "src": "./fighters/coccus-idle.svg",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frames": 6,
+      "anchor": [128, 218]
+    }
+  }
+}
